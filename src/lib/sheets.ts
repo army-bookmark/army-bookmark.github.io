@@ -74,7 +74,7 @@ function buildPhotoUrl(username: string, platform: 'x' | 'threads'): string {
 
 export async function getSheetData(): Promise<PostCard[]> {
   try {
-    const res = await fetch(CSV_URL, { cache: 'no-store' })
+    const res = await fetch(CSV_URL)
     if (!res.ok) return []
     const text = await res.text()
     const lines = text.trim().split('\n')
