@@ -82,7 +82,7 @@ export async function getSheetData(): Promise<PostCard[]> {
     const lines = text.trim().split('\n')
     if (lines.length < 2) return []
 
-    return lines.slice(1).map((line, i) => {
+    return lines.slice(1).map((line, i): PostCard | null => {
       const values = parseCSVLine(line)
       const id          = (values[0] ?? '').trim() || String(i)
       const rawStage    = (values[1] ?? '').trim()
@@ -98,6 +98,10 @@ export async function getSheetData(): Promise<PostCard[]> {
       const { username, handle } = parseUsername(tweet_url, srcHandle || undefined)
       const photo_url = buildPhotoUrl(username, platform)
 
+      const isFeatured = (values[7] ?? '').trim().toUpperCase() === 'TRUE'
+      const likes    = (values[9] ?? '').trim() || undefined
+      const comments = (values[10] ?? '').trim() || undefined
+
       return {
         id,
         tweet_url,
@@ -109,6 +113,9 @@ export async function getSheetData(): Promise<PostCard[]> {
         handle,
         initials: username.slice(0, 2).toUpperCase(),
         photo_url,
+        is_featured: isFeatured,
+        likes,
+        comments,
       } satisfies PostCard
     }).filter((c): c is PostCard => c !== null)
   } catch {

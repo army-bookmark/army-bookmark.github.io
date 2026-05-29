@@ -155,7 +155,7 @@ function HomePage({
 
   return (
     <div style={{ background: '#F7F6F2', minHeight: '100vh' }}>
-      <div style={{ maxWidth: 375, margin: '0 auto', position: 'relative' }}>
+      <div style={{ maxWidth: 430, width: '100%', margin: '0 auto', position: 'relative' }}>
 
         {/* ── HEADER ── */}
         <div style={{ position: 'relative', height: 140, overflow: 'visible' }}>
@@ -207,7 +207,15 @@ function HomePage({
             WebkitBoxDecorationBreak: 'clone',
             boxDecorationBreak: 'clone',
           } as React.CSSProperties}>
-            Kami udah kurasi info konser dari banyak sumber gais, we&apos;re not official please alwyz double check ♡
+            Kami udah kurasi info konser dari banyak sumber gais, we&apos;re not official please alwyz double check ♡ dan{' '}
+            <a
+              href="https://trakteer.id/rememorari/tip"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#FFD700', textDecoration: 'underline' }}
+            >
+              bisa traktir cendol
+            </a>
           </span>
         </div>
 
@@ -268,7 +276,7 @@ function HomePage({
         {/* ── FOOTER ── */}
         <div style={{ background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0 48px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 29, height: 68, objectFit: 'contain' }} />
+          <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 50, height: 68, objectFit: 'contain' }} />
         </div>
       </div>
     </div>
@@ -327,7 +335,7 @@ function CategorySection({
 
       <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: 32 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <CardStack stage={stage} posts={posts} isPhoto={isPhoto} onSelect={onSelect} />
+          <CardStack stage={stage} posts={posts.filter(p => p.is_featured)} isPhoto={isPhoto} onSelect={onSelect} />
         </div>
         <button
           onClick={() => onSelect(stage)}

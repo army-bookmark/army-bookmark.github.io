@@ -97,7 +97,7 @@ export function DetailItem({ item, isPhoto = false }: Props) {
             rel="noopener noreferrer"
             style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#000', color: '#fff', fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 9, padding: '4px 10px', borderRadius: 4, textDecoration: 'none', flexShrink: 0 }}
           >
-            {item.platform === 'threads' ? 'Buka Thread' : 'Buka Tweet'} →
+            Open Link →
           </a>
         </div>
       </div>
