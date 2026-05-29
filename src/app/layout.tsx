@@ -12,8 +12,22 @@ const spaceMono = Space_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'BTS Bookmark — Info Concert untuk ARMY Indonesia',
-  description: 'Kurasi info konser BTS dari berbagai sumber untuk ARMY Indonesia',
+  title: 'Army Bookmark - info seputar konser untuk ARMY Indonesia',
+  description: 'Kurasi manual info konser BTS dari berbagai sumber untuk ARMY Indonesia',
+  openGraph: {
+    type: 'website',
+    url: 'https://army-bookmark.github.io/',
+    title: 'Army Bookmark - info seputar konser untuk ARMY Indonesia',
+    description: 'Kurasi manual info konser BTS dari berbagai sumber untuk ARMY Indonesia',
+    images: [{ url: 'https://army-bookmark.github.io/og-image.png' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: 'army-bookmark.github.io',
+    title: 'Army Bookmark - info seputar konser untuk ARMY Indonesia',
+    description: 'Kurasi manual info konser BTS dari berbagai sumber untuk ARMY Indonesia',
+    images: ['https://army-bookmark.github.io/og-image.png'],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
