@@ -146,7 +146,7 @@ export function DetailView({ config, posts, onBack }: Props) {
           onClick={playClick}
           style={{
             display: 'inline-block',
-            fontFamily: 'var(--font-main)', fontSize: 12,
+            fontFamily: 'var(--font-main)', fontSize: 12, fontWeight: 700,
             color: '#000',
             backgroundImage: `url(${asset('/assets/tape.png')})`,
             backgroundSize: '100% 100%',

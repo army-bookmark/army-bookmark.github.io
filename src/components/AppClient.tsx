@@ -329,7 +329,7 @@ function TapeStrip({ style }: { style: React.CSSProperties }) {
       style={{
         position: 'absolute',
         left: -4, width: 'calc(100% + 8px)',
-        height: 125,
+        height: 160,
         objectFit: 'fill',
         filter: 'hue-rotate(349deg)',
         pointerEvents: 'none',
