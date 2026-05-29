@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import type { PostCard } from '@/lib/types'
+import { useTweetText } from '@/lib/useTweetText'
 
 interface Props { item: PostCard }
 
@@ -47,6 +48,8 @@ export function Avatar({ photoUrl, initials, size = 32 }: { photoUrl: string; in
 }
 
 export function TopCard({ item }: Props) {
+  const tweetText = useTweetText(item.tweet_url, item.platform)
+  const displayText = tweetText || item.caption
   const hasImage = !!item.image_url
 
   return (
@@ -84,7 +87,7 @@ export function TopCard({ item }: Props) {
           display: '-webkit-box', WebkitLineClamp: hasImage ? 3 : 4,
           WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>
-          {item.caption}
+          {displayText}
         </p>
         {hasImage && (
           // eslint-disable-next-line @next/next/no-img-element

@@ -13,17 +13,23 @@ interface Props {
   onBack: () => void
 }
 
+const EASE_DROP = [0.16, 1, 0.3, 1] as const
+const EASE_LIFT = [0.7, 0, 0.84, 0] as const
+
 const listVariants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.08, delayChildren: 0 } },
+  exit: { transition: { staggerChildren: 0.06, staggerDirection: -1 } },
 }
-const EASE_DROP = [0.16, 1, 0.3, 1] as const
-
 const itemVariants = {
   hidden: { opacity: 0, y: -40, scale: 0.96 },
   show: {
     opacity: 1, y: 0, scale: 1,
     transition: { duration: 0.45, ease: EASE_DROP },
+  },
+  exit: {
+    opacity: 0, y: -40, scale: 0.96,
+    transition: { duration: 0.35, ease: EASE_LIFT },
   },
 }
 
@@ -133,10 +139,12 @@ export function DetailView({ config, posts, onBack }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           style={{
+            display: 'inline-block',
             fontFamily: 'var(--font-main)', fontSize: 12,
             color: '#000',
-            background: 'rgb(251, 48, 76)',
-            padding: '5px 12px',
+            backgroundImage: `url(${asset('/assets/tape.png')})`,
+            backgroundSize: '100% 100%',
+            padding: '8px 16px',
             textDecoration: 'none',
           }}
         >

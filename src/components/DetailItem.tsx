@@ -1,10 +1,9 @@
 'use client'
 import type { PostCard } from '@/lib/types'
+import { useTweetText } from '@/lib/useTweetText'
 import { Avatar, XIcon, ThreadsIcon, TikTokIcon } from './TopCard'
 
-interface Props {
-  item: PostCard
-}
+// ── Caption bubble (editorial note) ──────────────────────────────────────────
 
 function CaptionBubble({ text }: { text: string }) {
   return (
@@ -15,7 +14,11 @@ function CaptionBubble({ text }: { text: string }) {
   )
 }
 
-export function DetailItem({ item }: Props) {
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+export function DetailItem({ item }: { item: PostCard }) {
+  const tweetText = useTweetText(item.tweet_url, item.platform)
+
   return (
     <>
       {item.caption && <CaptionBubble text={item.caption} />}
@@ -37,6 +40,13 @@ export function DetailItem({ item }: Props) {
             {item.platform === 'tiktok' && <TikTokIcon size={13} />}
           </div>
         </div>
+
+        {/* Tweet text (fetched from oEmbed — X/Twitter only) */}
+        {tweetText && (
+          <p style={{ fontFamily: 'var(--font-main)', fontSize: 12, lineHeight: '18px', color: '#000', margin: '0 0 10px 0', whiteSpace: 'pre-wrap' }}>
+            {tweetText}
+          </p>
+        )}
 
         {/* Embedded image */}
         {item.image_url && (

@@ -59,7 +59,7 @@ export function AppClient() {
         <motion.div
           key="home"
           initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
+          animate={{ opacity: 1, scale: 1, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1], delay: 0.18 } }}
           exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
         >
           <HomePage grouped={grouped} onSelect={setActiveStage} />
@@ -69,7 +69,7 @@ export function AppClient() {
           key={`detail-${activeStage}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.2, ease: 'linear' } }}
-          exit={{ opacity: 0, transition: { duration: 0.2, ease: 'linear' } }}
+          exit={{ opacity: 0, transition: { duration: 0.2, ease: 'linear', delay: 0.18 } }}
           style={{ minHeight: '100dvh', background: '#F7F6F2' }}
         >
           <DetailView
@@ -234,7 +234,7 @@ function CategorySection({ stage, config, posts, onSelect }: {
         {config.description}
       </p>
 
-      {/* Card + See More side-by-side */}
+      {/* Card + See More — See More sits inside the stack's right-layer padding */}
       <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: 32 }}>
         {/* Card stack — clickable */}
         <div
@@ -244,8 +244,8 @@ function CategorySection({ stage, config, posts, onSelect }: {
           <CardStack stage={stage} posts={featuredPosts} isPhoto={false} onSelect={onSelect} />
         </div>
 
-        {/* See More — vertically centred relative to card face (145px) */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, paddingLeft: 4, paddingRight: 6, flexShrink: 0 }}>
+        {/* See More — close to card's right edge */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, paddingLeft: 6, paddingRight: 10, flexShrink: 0 }}>
           <button
             onClick={() => onSelect(stage)}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
