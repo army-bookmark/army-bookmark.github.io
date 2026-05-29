@@ -1,9 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
 import { asset } from '@/lib/asset'
+import { getSheetData } from '@/lib/sheets'
 import { CardStack } from './CardStack'
 import { DetailView } from './DetailView'
 
@@ -68,16 +69,19 @@ const PHOTO_STAGES = ['war-tiket', 'hari-h-konser']
 // Spread ease from Paper
 const SPREAD_EASE = [0.76, 0, 0.24, 1] as const
 
-// ── Props ─────────────────────────────────────────────────────────────────────
-
-interface Props {
-  posts: PostCard[]
-}
-
 // ── Root component ────────────────────────────────────────────────────────────
 
-export function AppClient({ posts }: Props) {
+export function AppClient() {
+  const [posts, setPosts] = useState<PostCard[]>([])
+  const [loading, setLoading] = useState(true)
   const [activeStage, setActiveStage] = useState<string | null>(null)
+
+  useEffect(() => {
+    getSheetData().then(data => {
+      setPosts(data)
+      setLoading(false)
+    })
+  }, [])
 
   // Group posts by stage, preserve defined order
   const grouped = Object.fromEntries(
@@ -88,6 +92,14 @@ export function AppClient({ posts }: Props) {
   )
 
   const activePosts = activeStage ? grouped[activeStage] ?? [] : []
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100dvh', background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: '#999' }}>Loading...</span>
+      </div>
+    )
+  }
 
   return (
     <AnimatePresence mode="wait">
