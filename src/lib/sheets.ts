@@ -5,8 +5,8 @@ import type { PostCard } from './types'
 // 5: source_handle | 6: date_added | 7: is_featured | 8: is_pinned
 
 const CSV_URL =
-  process.env.NEXT_PUBLIC_SHEET_CSV_URL ??
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ87wLnnvNHtglzuEarQUqX7vKSc7Wkccaz6Mak8jggRaMMeQAEMPbvdZvSEYafAjBduUwZsmj1E8Ea/pub?gid=484688399&single=true&output=csv'
+  process.env.NEXT_PUBLIC_SHEET_CSV_URL ||
+  'https://docs.google.com/spreadsheets/d/1SvPzeIu7lIL-foauzYvzyhcF4k3lK5tnL2VC9YQhfdU/export?format=csv&gid=484688399'
 
 // Maps sheet stage slugs → app stage IDs
 const STAGE_MAP: Record<string, string> = {
@@ -19,9 +19,11 @@ const STAGE_MAP: Record<string, string> = {
   'war_time':        'war-tiket',
   'war':             'war-tiket',
   'udah-dapat-tiket':'udah-dapat-tiket',
+  'udah-tiket':      'udah-dapat-tiket',
   'after_ticket':    'udah-dapat-tiket',
   'after':           'udah-dapat-tiket',
   'hari-h-konser':   'hari-h-konser',
+  'hari-h':          'hari-h-konser',
   'concert_day':     'hari-h-konser',
   'concert':         'hari-h-konser',
   'scam-alert':      'scam-alert',
