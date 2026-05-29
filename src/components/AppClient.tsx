@@ -3,6 +3,7 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
+import { asset } from '@/lib/asset'
 import { CardStack } from './CardStack'
 import { DetailView } from './DetailView'
 
@@ -175,7 +176,7 @@ function HomePage({
 
           {/* BTS ARMY logo */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/army-logo.png" alt="BTS ARMY" style={{
+          <img src={asset('/assets/army-logo.png')} alt="BTS ARMY" style={{
             position: 'absolute', top: 36, left: 324,
             width: 26, height: 51, zIndex: 5, objectFit: 'contain',
           }} />
@@ -255,7 +256,7 @@ function HomePage({
         {/* ── FOOTER ── */}
         <div style={{ background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0 48px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/bts_logo.svg" alt="BTS" style={{ width: 29, height: 68, objectFit: 'contain' }} />
+          <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 29, height: 68, objectFit: 'contain' }} />
         </div>
       </div>
     </div>
@@ -333,6 +334,6 @@ function CategorySection({
 function TapeImg({ style }: { style: React.CSSProperties }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src="/assets/tape.png" alt="" aria-hidden="true" style={{ position: 'absolute', objectFit: 'cover', ...style }} />
+    <img src={asset('/assets/tape.png')} alt="" aria-hidden="true" style={{ position: 'absolute', objectFit: 'cover', ...style }} />
   )
 }

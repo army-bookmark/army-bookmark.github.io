@@ -1,6 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
+import { asset } from '@/lib/asset'
 import { DetailItem } from './DetailItem'
 import { TopCard } from './TopCard'
 
@@ -100,7 +101,7 @@ export function DetailView({ stage, config, posts, isPhoto, onBack }: Props) {
       {/* ── FOOTER — BTS logo at 0.25 opacity ── */}
       <div style={{ background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0 48px', opacity: 0.25 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/bts_logo.svg" alt="BTS" style={{ width: 29, height: 68, objectFit: 'contain' }} />
+        <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 29, height: 68, objectFit: 'contain' }} />
       </div>
     </div>
   )
