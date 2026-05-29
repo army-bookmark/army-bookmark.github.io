@@ -1,0 +1,116 @@
+/* BTS Bookmark — Design Tokens
+   Source: Paper design file "BTS Bookmark"
+   Frames: Reader Main Page (375×1820), Reader Detail Page (375×745)
+   Font: Space Mono (monospace editorial)
+*/
+
+:root {
+  /* ─── Colors ─────────────────────────────────────────────────── */
+
+  /* Backgrounds */
+  --color-bg:          #F7F6F2; /* page/artboard background — warm cream */
+  --color-surface:     #FFFFFF; /* card surfaces */
+  --color-placeholder: #DDDDDD; /* image placeholder blocks */
+
+  /* Ink */
+  --color-ink:         #000000; /* primary text, section highlight bars */
+
+  /* Primary accent */
+  --color-accent:      #FB304C; /* red — borders, CTAs, hearts, alert bar, underlines */
+
+  /* Text hierarchy */
+  --color-text-body:   #444444; /* card body text */
+  --color-text-muted:  #888888; /* timestamps, comment counts */
+  --color-text-on-dark: #FFFFFF; /* text on colored/dark bars */
+
+  /* Avatar */
+  --color-avatar-bg:   #FCE7F3; /* avatar circle — light pink */
+  --color-avatar-fg:   #9D174D; /* avatar initials — deep rose */
+
+  /* Structural */
+  --color-divider:     #EEEEEE; /* internal card separator line */
+
+  /* ─── Typography ─────────────────────────────────────────────── */
+  /* All text uses Space Mono exclusively */
+
+  --font-family: "Space Mono", system-ui, monospace;
+
+  /* Size scale */
+  --font-size-display:     20px; /* hero "CURATED CONTENT CONCERT" */
+  --font-size-heading:     18px; /* section headings, bottom bar labels */
+  --font-size-body:        12px; /* page-level body / subtitle text */
+  --font-size-card-body:   10px; /* card tweet body (main page compact) */
+  --font-size-card-body-sm: 9px; /* card tweet body (detail page) */
+  --font-size-cta:         10px; /* "See More →" */
+  --font-size-username:     9px; /* display name — compact main-page cards */
+  --font-size-username-lg: 11px; /* display name — detail-page / Twitter cards (30px avatar) */
+  --font-size-meta:         8px; /* likes count, comments, timestamp (compact) */
+  --font-size-meta-md:      9px; /* likes count, comments (detail page) */
+  --font-size-avatar-lg:    9px; /* avatar initials — 30px circle */
+  --font-size-avatar-sm:    8px; /* avatar initials — 28px circle */
+
+  /* Weight scale */
+  --font-weight-regular: 400;
+  --font-weight-bold:    700;
+
+  /* Line-height scale */
+  --leading-display:      18px; /* tight — display hero (20px font) */
+  --leading-heading:      22px; /* section headings */
+  --leading-body:         16px; /* page-level body text */
+  --leading-card-body:    14px; /* card tweet body */
+  --leading-card-body-sm: 13px; /* card tweet body sm */
+  --leading-cta:          12px; /* "See More →" */
+  --leading-meta:         10px; /* compact meta row */
+  --leading-meta-md:      12px; /* detail meta row */
+
+  /* ─── Spacing ─────────────────────────────────────────────────── */
+
+  --space-1:  2px;  /* decorative underlines / horizontal rule */
+  --space-2:  4px;  /* stat element internal margin */
+  --space-3:  5px;  /* card header→body gap, stats row padding-top */
+  --space-4:  6px;  /* card header→body gap (variant), row padding-top */
+  --space-5:  8px;  /* user-row gap, stats-row gap */
+  --space-6: 10px;  /* card paddingBlock */
+  --space-7: 12px;  /* card paddingInline, card-stack gap */
+  --space-8: 16px;  /* stacked card shadow offset */
+  --space-9: 24px;  /* CTA touch target */
+  --space-10: 32px; /* page left margin */
+  --space-11: 36px; /* hero text top offset */
+
+  /* Semantic aliases */
+  --page-margin:        32px; /* left/right page padding */
+  --card-padding-x:     12px;
+  --card-padding-y:     10px;
+  --card-stack-offset:  16px; /* offset of each stacked ghost layer */
+  --card-stack-gap:     12px; /* gap between stacked card groups */
+  --row-gap:             8px; /* gap within user row / stats row */
+
+  /* ─── Border Radius ──────────────────────────────────────────── */
+
+  --radius-card:   6px;  /* cards, bottom bars, announcement box */
+  --radius-avatar: 50%;  /* circular avatar */
+
+  /* ─── Borders ────────────────────────────────────────────────── */
+
+  --border-card:       1px solid var(--color-accent); /* card outline */
+  --border-divider:    1px solid var(--color-divider); /* internal card rule */
+  --border-ink:        1px solid var(--color-ink);     /* announcement box */
+
+  /* ─── Shadows ────────────────────────────────────────────────── */
+
+  --shadow-card: 3px 6px 9px rgba(0, 0, 0, 0.2); /* card with elevation */
+
+  /* ─── Stacked card rotation ──────────────────────────────────── */
+
+  --card-stack-rotate-1: 2.2deg;  /* outermost ghost layer */
+  --card-stack-rotate-2: 1.1deg;  /* middle ghost layer */
+
+  /* ─── Avatar sizes ───────────────────────────────────────────── */
+
+  --avatar-size-lg: 30px; /* used in detail page cards */
+  --avatar-size-sm: 28px; /* used in main page compact cards */
+
+  /* ─── Layout ─────────────────────────────────────────────────── */
+
+  --screen-width: 375px; /* design target width — mobile-first */
+}
