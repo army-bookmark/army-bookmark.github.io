@@ -83,3 +83,24 @@ export function playClick() {
   const ac = getCtx(); if (!ac) return
   noiseHP(ac, 0.2, 850, 7, 38)
 }
+
+// Horror sting — dissonant tritone sawtooth drone + low rumble + eerie ring
+export function playHorrorHover() {
+  const ac = getCtx(); if (!ac) return
+  // Two detuned sawtooth oscillators a tritone apart (75 Hz + 106 Hz ≈ 75 × √2)
+  const osc1 = ac.createOscillator()
+  const osc2 = ac.createOscillator()
+  const g = ac.createGain()
+  osc1.type = 'sawtooth'; osc1.frequency.value = 75
+  osc2.type = 'sawtooth'; osc2.frequency.value = 106
+  g.gain.setValueAtTime(0, ac.currentTime)
+  g.gain.linearRampToValueAtTime(0.09, ac.currentTime + 0.04)
+  g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.38)
+  osc1.connect(g); osc2.connect(g); g.connect(ac.destination)
+  osc1.start(); osc2.start()
+  osc1.stop(ac.currentTime + 0.42); osc2.stop(ac.currentTime + 0.42)
+  // Low sub-rumble noise for body
+  noiseBurst(ac, 0.04, 90, 0.7, 50, 160)
+  // Thin metallic eerie ring
+  metalRing(ac, 310, 0.018, 220)
+}

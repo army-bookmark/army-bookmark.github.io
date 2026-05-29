@@ -7,7 +7,7 @@ import { asset } from '@/lib/asset'
 import { getSheetData } from '@/lib/sheets'
 import { CardStack } from './CardStack'
 import { DetailView } from './DetailView'
-import { playClick, playHover } from '@/lib/sounds'
+import { playClick, playHover, playHorrorHover } from '@/lib/sounds'
 
 const Metaballs = dynamic(
   () => import('@paper-design/shaders-react').then(m => m.Metaballs),
@@ -110,9 +110,10 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
           />
 
           {/* Full-width tape strips behind CURATED / CONTENT / CONCERT */}
-          <TapeStrip style={{ top: 30,  transform: 'rotate(-0.4deg)' }} />
-          <TapeStrip style={{ top: 90,  transform: 'rotate(0.6deg)'  }} />
-          <TapeStrip style={{ top: 150, transform: 'rotate(-0.2deg)' }} />
+          {/* Brutalist asymmetric tape — each strip unique, mix-blend: multiply */}
+          <TapeStrip style={{ top: 8,   left: -4,  width: '72%', transform: 'rotate(-3.5deg)', mixBlendMode: 'multiply' }} />
+          <TapeStrip style={{ top: 62,  left: -22, width: '88%', transform: 'rotate(4deg)',    mixBlendMode: 'multiply' }} />
+          <TapeStrip style={{ top: 118, left: 28,  width: '66%', transform: 'rotate(-2deg)',   mixBlendMode: 'multiply' }} />
 
           {/* CURATED CONTENT CONCERT — big */}
           <div style={{
@@ -178,7 +179,7 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
         {/* ── BOTTOM BARS ── */}
         <div style={{ marginTop: 28 }}>
           <button
-            onMouseEnter={playHover}
+            onMouseEnter={playHorrorHover}
             onClick={() => { playClick(); onSelect('scam-alert') }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 70, background: '#FB304C', border: 'none', cursor: 'pointer' }}
           >
@@ -298,7 +299,7 @@ function CategorySection({ stage, config, posts, onSelect, isLoading, showSkelet
 
         {/* See More — hidden while loading */}
         {!isLoading && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, paddingLeft: 6, paddingRight: 10, flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, marginLeft: -10, paddingLeft: 6, paddingRight: 25, flexShrink: 0 }}>
             <button
               onMouseEnter={() => { setSeeMoreHovered(true); playHover() }}
               onMouseLeave={() => setSeeMoreHovered(false)}
@@ -328,7 +329,7 @@ function TapeStrip({ style }: { style: React.CSSProperties }) {
       style={{
         position: 'absolute',
         left: -4, width: 'calc(100% + 8px)',
-        height: 62,
+        height: 125,
         objectFit: 'fill',
         filter: 'hue-rotate(349deg)',
         pointerEvents: 'none',
