@@ -4,7 +4,7 @@ export interface PostCard {
   stage: string
   category_tag: string
   caption: string
-  platform: 'x' | 'threads'
+  platform: 'x' | 'threads' | 'tiktok'
   username: string
   handle: string
   initials: string
@@ -12,4 +12,5 @@ export interface PostCard {
   is_featured: boolean
   likes?: string
   comments?: string
+  image_url?: string
 }

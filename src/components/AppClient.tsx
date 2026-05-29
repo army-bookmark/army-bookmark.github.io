@@ -8,68 +8,30 @@ import { getSheetData } from '@/lib/sheets'
 import { CardStack } from './CardStack'
 import { DetailView } from './DetailView'
 
-// Live animated metaballs shader — Paper DR-0 exact params
 const Metaballs = dynamic(
   () => import('@paper-design/shaders-react').then(m => m.Metaballs),
   { ssr: false }
 )
 
-// ── Stage → UI config ─────────────────────────────────────────────────────────
+// ── Stage config ──────────────────────────────────────────────────────────────
 
-interface StageConfig {
-  name: string
-  description: string
-  isBar?: boolean
-  barColor?: string
-}
+interface StageConfig { name: string; description: string }
 
 const STAGE_CONFIG: Record<string, StageConfig> = {
-  'persiapan-tiket': {
-    name: 'Persiapan Cari Tiket',
-    description: 'Semua yang perlu kamu tau sebelum masuk ke war zone,..',
-  },
-  'war-tiket': {
-    name: '(Lagi) War Tiket',
-    description: 'Strategi war, troubleshoot, jastip,..',
-  },
-  'udah-dapat-tiket': {
-    name: 'Udah Dapet Tiket, terus?',
-    description: 'Verifikasi, keamanan data, plan ke venue',
-  },
-  'hari-h-konser': {
-    name: 'Hari-H Konser',
-    description: 'Fanchant, setlist, etiket konser, logistik,.',
-  },
-  'scam-alert': {
-    name: 'SCAM ALLERT',
-    description: 'Waspada penipuan tiket dan akun palsu yang beredar',
-    isBar: true,
-    barColor: '#FB304C',
-  },
-  'faq-konser': {
-    name: 'F.A.Q Konser',
-    description: 'Pertanyaan umum seputar concert BTS',
-    isBar: true,
-    barColor: '#000',
-  },
+  'persiapan-tiket': { name: 'Persiapan Cari Tiket', description: 'Semua yang perlu kamu tau sebelum masuk ke war zone,..' },
+  'war-tiket':       { name: '(Lagi) War Tiket',      description: 'Strategi war, troubleshoot, jastip,..' },
+  'udah-dapat-tiket':{ name: 'Udah Dapet Tiket, terus?', description: 'Verifikasi, keamanan data, plan ke venue' },
+  'hari-h-konser':   { name: 'Hari-H Konser',          description: 'Fanchant, setlist, etiket konser, logistik,.' },
+  'scam-alert':      { name: 'SCAM ALLERT',            description: 'Waspada penipuan tiket dan akun palsu yang beredar' },
+  'faq-konser':      { name: 'F.A.Q Konser',           description: 'Pertanyaan umum seputar concert BTS' },
 }
 
-const STAGE_ORDER = [
-  'persiapan-tiket',
-  'war-tiket',
-  'udah-dapat-tiket',
-  'hari-h-konser',
-  'scam-alert',
-  'faq-konser',
-]
+const STAGE_ORDER = ['persiapan-tiket', 'war-tiket', 'udah-dapat-tiket', 'hari-h-konser', 'scam-alert', 'faq-konser']
+const BAR_STAGES  = ['scam-alert', 'faq-konser']
 
-const BAR_STAGES = ['scam-alert', 'faq-konser']
-const PHOTO_STAGES = ['war-tiket', 'hari-h-konser']
-
-// Spread ease from Paper
 const SPREAD_EASE = [0.76, 0, 0.24, 1] as const
 
-// ── Root component ────────────────────────────────────────────────────────────
+// ── Root ──────────────────────────────────────────────────────────────────────
 
 export function AppClient() {
   const [posts, setPosts] = useState<PostCard[]>([])
@@ -77,32 +39,24 @@ export function AppClient() {
   const [activeStage, setActiveStage] = useState<string | null>(null)
 
   useEffect(() => {
-    getSheetData().then(data => {
-      setPosts(data)
-      setLoading(false)
-    })
+    getSheetData().then(data => { setPosts(data); setLoading(false) })
   }, [])
 
-  // Group posts by stage, preserve defined order
   const grouped = Object.fromEntries(
-    STAGE_ORDER.map(stage => [
-      stage,
-      posts.filter(p => p.stage === stage),
-    ])
+    STAGE_ORDER.map(s => [s, posts.filter(p => p.stage === s)])
   )
-
   const activePosts = activeStage ? grouped[activeStage] ?? [] : []
 
   if (loading) {
     return (
       <div style={{ minHeight: '100dvh', background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: '#999' }}>Loading...</span>
+        <span style={{ fontFamily: 'var(--font-main)', fontSize: 14, color: '#999' }}>Loading...</span>
       </div>
     )
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {!activeStage ? (
         <motion.div
           key="home"
@@ -113,25 +67,18 @@ export function AppClient() {
           <HomePage grouped={grouped} onSelect={setActiveStage} />
         </motion.div>
       ) : (
-        /* Spread from top → bottom on enter; collapse from top on back */
         <motion.div
           key={`detail-${activeStage}`}
           initial={{ clipPath: 'inset(0% 0% 100% 0%)' }}
-          animate={{
-            clipPath: 'inset(0% 0% 0% 0%)',
-            transition: { duration: 0.48, ease: SPREAD_EASE },
-          }}
-          exit={{
-            clipPath: 'inset(100% 0% 0% 0%)',
-            transition: { duration: 0.32, ease: SPREAD_EASE },
-          }}
+          animate={{ clipPath: 'inset(0% 0% 0% 0%)', transition: { duration: 0.42, ease: SPREAD_EASE } }}
+          exit={{ clipPath: 'inset(100% 0% 0% 0%)', transition: { duration: 0.30, ease: SPREAD_EASE } }}
           style={{ minHeight: '100dvh', background: '#F7F6F2' }}
         >
           <DetailView
             stage={activeStage}
             config={STAGE_CONFIG[activeStage] ?? { name: activeStage, description: '' }}
             posts={activePosts}
-            isPhoto={PHOTO_STAGES.includes(activeStage)}
+            isPhoto={false}
             onBack={() => setActiveStage(null)}
           />
         </motion.div>
@@ -142,67 +89,51 @@ export function AppClient() {
 
 // ── Home page ─────────────────────────────────────────────────────────────────
 
-function HomePage({
-  grouped,
-  onSelect,
-}: {
-  grouped: Record<string, PostCard[]>
-  onSelect: (stage: string) => void
-}) {
+function HomePage({ grouped, onSelect }: { grouped: Record<string, PostCard[]>; onSelect: (s: string) => void }) {
   const stackStages = STAGE_ORDER.filter(s => !BAR_STAGES.includes(s))
-  const scamPosts = grouped['scam-alert'] ?? []
-  const faqPosts = grouped['faq-konser'] ?? []
 
   return (
     <div style={{ background: '#F7F6F2', minHeight: '100vh' }}>
-      <div style={{ maxWidth: 430, width: '100%', margin: '0 auto', position: 'relative' }}>
+      <div style={{ maxWidth: 430, width: '100%', margin: '0 auto', position: 'relative', overflowX: 'hidden' }}>
 
         {/* ── HEADER ── */}
-        <div style={{ position: 'relative', height: 140, overflow: 'visible' }}>
+        <div style={{ position: 'relative', height: 240, overflow: 'visible' }}>
 
-          {/* Live Metaballs shader — Paper DR-0: 371×224px at left:4, top:0 */}
           <Metaballs
             speed={1} count={10} size={0.07} scale={1.31}
             colors={['#000000']} colorBack="#00000000"
-            style={{
-              position: 'absolute', top: 0, left: 4,
-              width: 371, height: 224,
-              pointerEvents: 'none', zIndex: 0,
-            }}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 280, pointerEvents: 'none', zIndex: 0 }}
           />
 
-          {/* CURATED CONTENT CONCERT */}
+          {/* Full-width tape strips behind CURATED / CONTENT / CONCERT */}
+          <TapeStrip style={{ top: 30,  transform: 'rotate(-0.4deg)' }} />
+          <TapeStrip style={{ top: 90,  transform: 'rotate(0.6deg)'  }} />
+          <TapeStrip style={{ top: 150, transform: 'rotate(-0.2deg)' }} />
+
+          {/* CURATED CONTENT CONCERT — big */}
           <div style={{
             position: 'absolute', top: 36, left: 32,
             fontFamily: 'var(--font-main)', fontWeight: 700,
-            fontSize: 20, lineHeight: '22px',
+            fontSize: 44, lineHeight: '56px',
             color: '#000', zIndex: 5, pointerEvents: 'none',
           }}>
             CURATED<br />CONTENT<br />CONCERT
           </div>
 
-          {/* Red tape strips — one per line, height matches line-height (22px) */}
-          <TapeImg style={{ top: 33, left: 28, width: 114, height: 24, transform: 'rotate(-0.4deg)', filter: 'hue-rotate(349deg)', zIndex: 3 }} />
-          <TapeImg style={{ top: 55, left: 28, width: 110, height: 24, transform: 'rotate(0.6deg)', filter: 'hue-rotate(349deg)', zIndex: 3 }} />
-          <TapeImg style={{ top: 77, left: 28, width: 112, height: 24, transform: 'rotate(-0.2deg)', filter: 'hue-rotate(349deg)', zIndex: 3 }} />
-
           {/* BTS ARMY logo */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={asset('/assets/army-logo.png')} alt="BTS ARMY" style={{
-            position: 'absolute', top: 36, left: 324,
-            width: 26, height: 51, zIndex: 5, objectFit: 'contain',
+            position: 'absolute', top: 36, right: 24,
+            width: 28, height: 56, zIndex: 5, objectFit: 'contain',
           }} />
-
         </div>
 
-        {/* ── TRUST BANNER — per-line tape strips via box-decoration-break ── */}
-        <div style={{ margin: '0 24px 24px', position: 'relative', zIndex: 10, lineHeight: '26px' }}>
+        {/* ── TRUST BANNER ── */}
+        <div style={{ margin: '0 24px 28px', position: 'relative', zIndex: 10, lineHeight: '28px' }}>
           <span style={{
             display: 'inline',
-            background: '#0A0A0A',
-            color: '#fff',
-            fontFamily: 'var(--font-main)',
-            fontSize: 11,
+            background: '#0A0A0A', color: '#fff',
+            fontFamily: 'var(--font-main)', fontSize: 12,
             padding: '3px 8px',
             WebkitBoxDecorationBreak: 'clone',
             boxDecorationBreak: 'clone',
@@ -212,7 +143,7 @@ function HomePage({
               href="https://trakteer.id/rememorari/tip"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: '#FFD700', textDecoration: 'underline' }}
+              style={{ color: 'rgb(251, 48, 76)', textDecoration: 'underline' }}
             >
               bisa traktir cendol
             </a>
@@ -224,14 +155,12 @@ function HomePage({
           {stackStages.map(stage => {
             const cfg = STAGE_CONFIG[stage]
             if (!cfg) return null
-            const posts = grouped[stage] ?? []
             return (
               <CategorySection
                 key={stage}
                 stage={stage}
                 config={cfg}
-                posts={posts}
-                isPhoto={PHOTO_STAGES.includes(stage)}
+                posts={grouped[stage] ?? []}
                 onSelect={onSelect}
               />
             )
@@ -239,42 +168,25 @@ function HomePage({
         </div>
 
         {/* ── BOTTOM BARS ── */}
-        {scamPosts.length >= 0 && (
+        <div style={{ marginTop: 28 }}>
           <button
             onClick={() => onSelect('scam-alert')}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', padding: '0 24px',
-              height: 52, background: '#FB304C',
-              border: 'none', cursor: 'pointer',
-            }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 56, background: '#FB304C', border: 'none', cursor: 'pointer' }}
           >
-            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 18, color: '#fff' }}>
-              SCAM ALLERT
-            </span>
-            <span style={{ fontSize: 18, color: '#fff' }}>⚠︎</span>
+            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>SCAM ALLERT</span>
+            <span style={{ fontSize: 20, color: '#fff' }}>⚠︎</span>
           </button>
-        )}
-        {faqPosts.length >= 0 && (
           <button
             onClick={() => onSelect('faq-konser')}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', padding: '0 24px',
-              height: 52, background: '#000',
-              border: 'none', cursor: 'pointer',
-              marginTop: -6,
-            }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 56, background: '#000', border: 'none', cursor: 'pointer', marginTop: -4 }}
           >
-            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 18, color: '#fff' }}>
-              F.A.Q Konser
-            </span>
-            <span style={{ fontSize: 18, color: '#fff' }}>☺︎</span>
+            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>F.A.Q Konser</span>
+            <span style={{ fontSize: 20, color: '#fff' }}>☺︎</span>
           </button>
-        )}
+        </div>
 
         {/* ── FOOTER ── */}
-        <div style={{ background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0 48px' }}>
+        <div style={{ background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0 52px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 50, height: 68, objectFit: 'contain' }} />
         </div>
@@ -289,25 +201,21 @@ type DecoType = 'underline' | 'tape'
 interface DecoConfig { type: DecoType; left: number; top?: number; width: number; height?: number; rotate?: number }
 
 const TITLE_DECOS: Record<string, DecoConfig> = {
-  'persiapan-tiket': { type: 'underline', left: 105, width: 123, rotate: -2.38 },
-  'war-tiket': { type: 'tape', left: 76, top: -5, width: 78, height: 38, rotate: 7.62 },
-  'udah-dapat-tiket': { type: 'tape', left: 37, top: -20, width: 142, height: 59, rotate: 0 },
-  'hari-h-konser': { type: 'tape', left: -5, top: -17, width: 79, height: 55, rotate: 0 },
+  'persiapan-tiket':  { type: 'underline', left: 115, width: 135, rotate: -2.38 },
+  'war-tiket':        { type: 'tape', left: 82, top: -6, width: 82, height: 40, rotate: 7.62 },
+  'udah-dapat-tiket': { type: 'tape', left: 40, top: -22, width: 150, height: 62, rotate: 0 },
+  'hari-h-konser':    { type: 'tape', left: -6, top: -18, width: 84, height: 58, rotate: 0 },
 }
 
-function CategorySection({
-  stage, config, posts, isPhoto, onSelect,
-}: {
-  stage: string
-  config: StageConfig
-  posts: PostCard[]
-  isPhoto: boolean
-  onSelect: (stage: string) => void
+function CategorySection({ stage, config, posts, onSelect }: {
+  stage: string; config: StageConfig; posts: PostCard[]; onSelect: (s: string) => void
 }) {
   const deco = TITLE_DECOS[stage]
+  const featuredPosts = posts.filter(p => p.is_featured)
 
   return (
     <div style={{ padding: '28px 0 0' }}>
+      {/* Title row with decoration */}
       <div style={{ position: 'relative', marginLeft: 32, marginRight: 32, marginBottom: 4 }}>
         {deco?.type === 'tape' && (
           <TapeImg style={{
@@ -317,40 +225,68 @@ function CategorySection({
             transformOrigin: '0 0', filter: 'hue-rotate(349deg)', zIndex: 1,
           }} />
         )}
-        <h2 style={{ position: 'relative', zIndex: 2, fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 18, lineHeight: '22px', color: '#000', margin: 0 }}>
+        <h2 style={{ position: 'relative', zIndex: 2, fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, lineHeight: '24px', color: '#000', margin: 0 }}>
           {config.name}
         </h2>
         {deco?.type === 'underline' && (
-          <div style={{
-            position: 'absolute', left: deco.left, bottom: -1,
-            width: deco.width, height: 2, background: '#FB314C',
-            transform: `rotate(${deco.rotate ?? 0}deg)`, transformOrigin: '0 0', zIndex: 3,
-          }} />
+          <div style={{ position: 'absolute', left: deco.left, bottom: -1, width: deco.width, height: 2, background: '#FB314C', transform: `rotate(${deco.rotate ?? 0}deg)`, transformOrigin: '0 0', zIndex: 3 }} />
         )}
       </div>
 
-      <p style={{ marginLeft: 32, marginRight: 32, marginTop: 4, marginBottom: 16, fontFamily: 'var(--font-main)', fontSize: 12, lineHeight: '16px', color: '#000' }}>
+      <p style={{ marginLeft: 32, marginRight: 32, marginTop: 6, marginBottom: 16, fontFamily: 'var(--font-main)', fontSize: 13, lineHeight: '18px', color: '#000' }}>
         {config.description}
       </p>
 
+      {/* Card + See More side-by-side */}
       <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: 32 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <CardStack stage={stage} posts={posts.filter(p => p.is_featured)} isPhoto={isPhoto} onSelect={onSelect} />
-        </div>
-        <button
+        {/* Card stack — clickable */}
+        <div
+          style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
           onClick={() => onSelect(stage)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px 0 8px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}
         >
-          <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 10, lineHeight: '12px', color: '#FB304C' }}>See More</span>
-          <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 10, lineHeight: '12px', color: '#FB304C' }}>→</span>
-        </button>
+          <CardStack stage={stage} posts={featuredPosts} isPhoto={false} onSelect={onSelect} />
+        </div>
+
+        {/* See More — vertically centred relative to card face (145px) */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, paddingLeft: 8, paddingRight: 14, flexShrink: 0 }}>
+          <button
+            onClick={() => onSelect(stage)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
+          >
+            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 11, lineHeight: '14px', color: '#FB304C' }}>See</span>
+            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 11, lineHeight: '14px', color: '#FB304C' }}>More</span>
+            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 13, color: '#FB304C' }}>→</span>
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-// ── Tape image helper ─────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Full-width tape strip for header (stretches to container width)
+function TapeStrip({ style }: { style: React.CSSProperties }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={asset('/assets/tape.png')}
+      alt="" aria-hidden="true"
+      style={{
+        position: 'absolute',
+        left: -4, width: 'calc(100% + 8px)',
+        height: 62,
+        objectFit: 'fill',
+        filter: 'hue-rotate(349deg)',
+        pointerEvents: 'none',
+        zIndex: 3,
+        ...style,
+      }}
+    />
+  )
+}
+
+// Small tape image for category-title decorations
 function TapeImg({ style }: { style: React.CSSProperties }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element

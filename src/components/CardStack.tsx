@@ -22,7 +22,7 @@ export function CardStack({ stage, posts, isPhoto, onSelect }: Props) {
     // Empty state — still show the stack outline
     return (
       <div style={{ paddingRight: 22, paddingBottom: 18, maxWidth: 270 }}>
-        <div style={{ height: 125, border: '1px dashed #FB304C', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ height: 145, border: '1px dashed #FB304C', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ fontFamily: 'var(--font-main)', fontSize: 9, color: '#BBB' }}>Belum ada post</span>
         </div>
       </div>
@@ -55,7 +55,7 @@ export function CardStack({ stage, posts, isPhoto, onSelect }: Props) {
         variants={topLayer}
         transition={spring}
       >
-        <TopCard item={latest} isPhoto={isPhoto} />
+        <TopCard item={latest} />
       </motion.div>
     </motion.div>
   )

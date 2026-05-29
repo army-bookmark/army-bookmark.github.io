@@ -45,8 +45,10 @@ function parseCSVLine(line: string): string[] {
   return results
 }
 
-function parsePlatform(url: string): 'x' | 'threads' {
-  return url.includes('threads.net') ? 'threads' : 'x'
+function parsePlatform(url: string): 'x' | 'threads' | 'tiktok' {
+  if (url.includes('threads.net')) return 'threads'
+  if (url.includes('tiktok.com')) return 'tiktok'
+  return 'x'
 }
 
 // Extract clean username from the tweet/post URL
@@ -66,11 +68,9 @@ function parseUsername(url: string, fallbackHandle?: string): { username: string
   }
 }
 
-// Build unavatar.io URL to fetch real profile photo without an API key
-function buildPhotoUrl(username: string, platform: 'x' | 'threads'): string {
-  if (platform === 'threads') {
-    return `https://unavatar.io/instagram/${username}`
-  }
+function buildPhotoUrl(username: string, platform: 'x' | 'threads' | 'tiktok'): string {
+  if (platform === 'threads') return `https://unavatar.io/instagram/${username}`
+  if (platform === 'tiktok') return `https://unavatar.io/tiktok/${username}`
   return `https://unavatar.io/x/${username}`
 }
 
@@ -99,8 +99,9 @@ export async function getSheetData(): Promise<PostCard[]> {
       const photo_url = buildPhotoUrl(username, platform)
 
       const isFeatured = (values[7] ?? '').trim().toUpperCase() === 'TRUE'
-      const likes    = (values[9] ?? '').trim() || undefined
-      const comments = (values[10] ?? '').trim() || undefined
+      const likes      = (values[9] ?? '').trim() || undefined
+      const comments   = (values[10] ?? '').trim() || undefined
+      const image_url  = (values[11] ?? '').trim() || undefined
 
       return {
         id,
@@ -116,6 +117,7 @@ export async function getSheetData(): Promise<PostCard[]> {
         is_featured: isFeatured,
         likes,
         comments,
+        image_url,
       } satisfies PostCard
     }).filter((c): c is PostCard => c !== null)
   } catch {

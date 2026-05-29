@@ -54,7 +54,7 @@ interface CardData {
   username: string
   handle?: string
   timestamp?: string
-  source: 'x' | 'threads'
+  source: 'x' | 'threads' | 'tiktok'
   text: string
   likes: string
   comments: string
