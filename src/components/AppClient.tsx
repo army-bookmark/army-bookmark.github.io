@@ -29,8 +29,6 @@ const STAGE_CONFIG: Record<string, StageConfig> = {
 const STAGE_ORDER = ['persiapan-tiket', 'war-tiket', 'udah-dapat-tiket', 'hari-h-konser', 'scam-alert', 'faq-konser']
 const BAR_STAGES  = ['scam-alert', 'faq-konser']
 
-const SPREAD_EASE = [0.76, 0, 0.24, 1] as const
-
 // ── Root ──────────────────────────────────────────────────────────────────────
 
 export function AppClient() {
@@ -60,25 +58,24 @@ export function AppClient() {
       {!activeStage ? (
         <motion.div
           key="home"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.08 } }}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
+          exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
         >
           <HomePage grouped={grouped} onSelect={setActiveStage} />
         </motion.div>
       ) : (
         <motion.div
           key={`detail-${activeStage}`}
-          initial={{ clipPath: 'inset(0% 0% 100% 0%)' }}
-          animate={{ clipPath: 'inset(0% 0% 0% 0%)', transition: { duration: 0.42, ease: SPREAD_EASE } }}
-          exit={{ clipPath: 'inset(100% 0% 0% 0%)', transition: { duration: 0.30, ease: SPREAD_EASE } }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.2, ease: 'linear' } }}
+          exit={{ opacity: 0, transition: { duration: 0.2, ease: 'linear' } }}
           style={{ minHeight: '100dvh', background: '#F7F6F2' }}
         >
           <DetailView
             stage={activeStage}
             config={STAGE_CONFIG[activeStage] ?? { name: activeStage, description: '' }}
             posts={activePosts}
-            isPhoto={false}
             onBack={() => setActiveStage(null)}
           />
         </motion.div>
@@ -171,14 +168,14 @@ function HomePage({ grouped, onSelect }: { grouped: Record<string, PostCard[]>; 
         <div style={{ marginTop: 28 }}>
           <button
             onClick={() => onSelect('scam-alert')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 56, background: '#FB304C', border: 'none', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 70, background: '#FB304C', border: 'none', cursor: 'pointer' }}
           >
             <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>SCAM ALLERT</span>
             <span style={{ fontSize: 20, color: '#fff' }}>⚠︎</span>
           </button>
           <button
             onClick={() => onSelect('faq-konser')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 56, background: '#000', border: 'none', cursor: 'pointer', marginTop: -4 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 70, background: '#000', border: 'none', cursor: 'pointer', marginTop: -4 }}
           >
             <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>F.A.Q Konser</span>
             <span style={{ fontSize: 20, color: '#fff' }}>☺︎</span>
@@ -248,7 +245,7 @@ function CategorySection({ stage, config, posts, onSelect }: {
         </div>
 
         {/* See More — vertically centred relative to card face (145px) */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, paddingLeft: 8, paddingRight: 14, flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, paddingLeft: 4, paddingRight: 6, flexShrink: 0 }}>
           <button
             onClick={() => onSelect(stage)}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}

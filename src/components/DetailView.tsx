@@ -4,27 +4,30 @@ import { motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
 import { asset } from '@/lib/asset'
 import { DetailItem } from './DetailItem'
-import { TopCard } from './TopCard'
 
 interface StageConfig { name: string; description: string }
 interface Props {
   stage: string
   config: StageConfig
   posts: PostCard[]
-  isPhoto: boolean
   onBack: () => void
 }
 
 const listVariants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } },
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0 } },
 }
+const EASE_DROP = [0.16, 1, 0.3, 1] as const
+
 const itemVariants = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 320, damping: 26 } },
+  hidden: { opacity: 0, y: -40, scale: 0.96 },
+  show: {
+    opacity: 1, y: 0, scale: 1,
+    transition: { duration: 0.45, ease: EASE_DROP },
+  },
 }
 
-export function DetailView({ stage, config, posts, onBack }: Props) {
+export function DetailView({ config, posts, onBack }: Props) {
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
 
@@ -38,13 +41,13 @@ export function DetailView({ stage, config, posts, onBack }: Props) {
     if (dx > 64 && dy < 50) onBack()
   }
 
-  // Newest first; featured always pinned to top
   const reversed = [...posts].reverse()
   const sorted = [
     ...reversed.filter(p => p.is_featured),
     ...reversed.filter(p => !p.is_featured),
   ]
-  const [latest, ...rest] = sorted
+  const featuredPosts = sorted.filter(p => p.is_featured)
+  const otherPosts = sorted.filter(p => !p.is_featured)
 
   return (
     <div
@@ -77,41 +80,42 @@ export function DetailView({ stage, config, posts, onBack }: Props) {
       {/* ── CONTENT ── */}
       <div style={{ flex: 1, maxWidth: 430, width: '100%', margin: '0 auto', padding: '24px 28px 80px', display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-        {/* Description box */}
-        <div style={{ borderRadius: 6, border: '1px solid #000', padding: '10px 13px', marginBottom: 24 }}>
-          <p style={{ fontFamily: 'var(--font-main)', fontWeight: 400, fontSize: 13, lineHeight: '18px', color: '#000', margin: 0, whiteSpace: 'pre-wrap' }}>
-            {config.description}
-          </p>
-        </div>
-
         {posts.length === 0 && (
           <p style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: '#888', textAlign: 'center', paddingTop: 40 }}>
             Belum ada info di kategori ini.
           </p>
         )}
 
-        {/* Top card — shared layoutId from CardStack */}
-        {latest && (
-          <motion.div
-            layoutId={`card-top-${stage}`}
-            style={{ border: '1px solid #FB304C', background: '#FFFFFF', borderRadius: 6, overflow: 'hidden', marginBottom: 20, boxShadow: '3px 6px 9px rgba(0,0,0,0.20)', boxSizing: 'border-box' }}
-          >
-            <TopCard item={latest} />
-          </motion.div>
-        )}
-
-        {/* Rest — staggered top-to-bottom */}
-        {rest.length > 0 && (
+        {/* Featured cards — stagger drop-in from top */}
+        {featuredPosts.length > 0 && (
           <motion.div
             variants={listVariants}
             initial="hidden"
             animate="show"
             style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
           >
-            <p style={{ fontFamily: 'var(--font-main)', fontSize: 11, fontWeight: 700, color: '#888', letterSpacing: '0.12em', textTransform: 'uppercase', paddingBottom: 8, borderBottom: '1px solid #DDD', marginBottom: 0 }}>
-              Info Sebelumnya
-            </p>
-            {rest.map(item => (
+            {featuredPosts.map(item => (
+              <motion.div key={item.id} variants={itemVariants}>
+                <DetailItem item={item} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        {/* Divider: no label, just the border */}
+        {featuredPosts.length > 0 && otherPosts.length > 0 && (
+          <div style={{ borderBottom: '1px solid #DDD', margin: '20px 0' }} />
+        )}
+
+        {/* Other cards — stagger drop-in from top */}
+        {otherPosts.length > 0 && (
+          <motion.div
+            variants={listVariants}
+            initial="hidden"
+            animate="show"
+            style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
+          >
+            {otherPosts.map(item => (
               <motion.div key={item.id} variants={itemVariants}>
                 <DetailItem item={item} />
               </motion.div>
@@ -122,12 +126,19 @@ export function DetailView({ stage, config, posts, onBack }: Props) {
 
       {/* ── FOOTER ── */}
       <div style={{ background: '#F7F6F2', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0 48px', gap: 16 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 50, height: 68, objectFit: 'contain', opacity: 0.25 }} />
         <a
           href="https://trakteer.id/rememorari/tip"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ fontFamily: 'var(--font-main)', fontSize: 12, color: 'rgb(251, 48, 76)', textDecoration: 'underline' }}
+          style={{
+            fontFamily: 'var(--font-main)', fontSize: 12,
+            color: '#000',
+            background: 'rgb(251, 48, 76)',
+            padding: '5px 12px',
+            textDecoration: 'none',
+          }}
         >
           bisa traktir cendol ♡
         </a>
