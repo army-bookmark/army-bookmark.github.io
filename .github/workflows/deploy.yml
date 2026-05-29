@@ -31,7 +31,6 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_SHEET_CSV_URL: ${{ secrets.NEXT_PUBLIC_SHEET_CSV_URL }}
-          NEXT_PUBLIC_BASE_PATH: /ARMYBookmark
 
       - name: Add .nojekyll
         run: touch out/.nojekyll
