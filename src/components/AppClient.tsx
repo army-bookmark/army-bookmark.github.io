@@ -121,7 +121,7 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
             fontSize: 44, lineHeight: '56px',
             color: '#000', zIndex: 5, pointerEvents: 'none',
           }}>
-            CURATED<br />CONTENT<br />CONCERT
+            CURATEDD<br />CONTENT<br />CONCERT
           </div>
 
           {/* BTS ARMY logo */}
