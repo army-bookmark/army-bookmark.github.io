@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
@@ -7,6 +7,7 @@ import { asset } from '@/lib/asset'
 import { getSheetData } from '@/lib/sheets'
 import { CardStack } from './CardStack'
 import { DetailView } from './DetailView'
+import { playClick, playHover } from '@/lib/sounds'
 
 const Metaballs = dynamic(
   () => import('@paper-design/shaders-react').then(m => m.Metaballs),
@@ -34,10 +35,19 @@ const BAR_STAGES  = ['scam-alert', 'faq-konser']
 export function AppClient() {
   const [posts, setPosts] = useState<PostCard[]>([])
   const [loading, setLoading] = useState(true)
+  // Only show shimmer if data takes longer than 250 ms — fast loads skip it entirely
+  const [showSkeleton, setShowSkeleton] = useState(false)
   const [activeStage, setActiveStage] = useState<string | null>(null)
+  const hasVisitedDetail = useRef(false)
 
   useEffect(() => {
-    getSheetData().then(data => { setPosts(data); setLoading(false) })
+    const skeletonTimer = setTimeout(() => setShowSkeleton(true), 250)
+    getSheetData().then(data => {
+      clearTimeout(skeletonTimer)
+      setPosts(data)
+      setLoading(false)
+    })
+    return () => clearTimeout(skeletonTimer)
   }, [])
 
   const grouped = Object.fromEntries(
@@ -45,12 +55,9 @@ export function AppClient() {
   )
   const activePosts = activeStage ? grouped[activeStage] ?? [] : []
 
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100dvh', background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'var(--font-main)', fontSize: 14, color: '#999' }}>Loading...</span>
-      </div>
-    )
+  const handleSelect = (stage: string) => {
+    hasVisitedDetail.current = true
+    setActiveStage(stage)
   }
 
   return (
@@ -58,18 +65,18 @@ export function AppClient() {
       {!activeStage ? (
         <motion.div
           key="home"
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1], delay: 0.18 } }}
+          initial={hasVisitedDetail.current ? { opacity: 0 } : { opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1, transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] } }}
           exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
         >
-          <HomePage grouped={grouped} onSelect={setActiveStage} />
+          <HomePage grouped={grouped} onSelect={handleSelect} loading={loading} showSkeleton={showSkeleton} />
         </motion.div>
       ) : (
         <motion.div
           key={`detail-${activeStage}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.2, ease: 'linear' } }}
-          exit={{ opacity: 0, transition: { duration: 0.2, ease: 'linear', delay: 0.18 } }}
+          exit={{ opacity: 0, transition: { duration: 0.18, ease: 'linear' } }}
           style={{ minHeight: '100dvh', background: '#F7F6F2' }}
         >
           <DetailView
@@ -86,7 +93,7 @@ export function AppClient() {
 
 // ── Home page ─────────────────────────────────────────────────────────────────
 
-function HomePage({ grouped, onSelect }: { grouped: Record<string, PostCard[]>; onSelect: (s: string) => void }) {
+function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Record<string, PostCard[]>; onSelect: (s: string) => void; loading: boolean; showSkeleton: boolean }) {
   const stackStages = STAGE_ORDER.filter(s => !BAR_STAGES.includes(s))
 
   return (
@@ -140,6 +147,8 @@ function HomePage({ grouped, onSelect }: { grouped: Record<string, PostCard[]>; 
               href="https://trakteer.id/rememorari/tip"
               target="_blank"
               rel="noopener noreferrer"
+              onMouseEnter={playHover}
+              onClick={playClick}
               style={{ color: 'rgb(251, 48, 76)', textDecoration: 'underline' }}
             >
               bisa traktir cendol
@@ -159,6 +168,8 @@ function HomePage({ grouped, onSelect }: { grouped: Record<string, PostCard[]>; 
                 config={cfg}
                 posts={grouped[stage] ?? []}
                 onSelect={onSelect}
+                isLoading={loading}
+                showSkeleton={showSkeleton}
               />
             )
           })}
@@ -167,14 +178,16 @@ function HomePage({ grouped, onSelect }: { grouped: Record<string, PostCard[]>; 
         {/* ── BOTTOM BARS ── */}
         <div style={{ marginTop: 28 }}>
           <button
-            onClick={() => onSelect('scam-alert')}
+            onMouseEnter={playHover}
+            onClick={() => { playClick(); onSelect('scam-alert') }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 70, background: '#FB304C', border: 'none', cursor: 'pointer' }}
           >
             <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>SCAM ALLERT</span>
             <span style={{ fontSize: 20, color: '#fff' }}>⚠︎</span>
           </button>
           <button
-            onClick={() => onSelect('faq-konser')}
+            onMouseEnter={playHover}
+            onClick={() => { playClick(); onSelect('faq-konser') }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 70, background: '#000', border: 'none', cursor: 'pointer', marginTop: -4 }}
           >
             <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>F.A.Q Konser</span>
@@ -186,6 +199,40 @@ function HomePage({ grouped, onSelect }: { grouped: Record<string, PostCard[]>; 
         <div style={{ background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0 52px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 50, height: 68, objectFit: 'contain' }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Skeleton card stack ───────────────────────────────────────────────────────
+
+function SkeletonCardStack() {
+  return (
+    <div style={{ position: 'relative', paddingRight: 22, paddingBottom: 18, maxWidth: 270 }}>
+      {/* Background stack layers */}
+      <div style={{ position: 'absolute', inset: 0, right: 22, bottom: 18, border: '1px solid rgba(251,48,76,0.25)', borderRadius: 6 }} />
+      <div style={{ position: 'absolute', inset: 0, right: 22, bottom: 18, border: '1px solid rgba(251,48,76,0.5)', borderRadius: 6, transform: 'translate(4px, 4px)' }} />
+      {/* Top card */}
+      <div style={{ position: 'relative', zIndex: 10, background: '#fff', border: '1.5px solid #FB304C', borderRadius: 6, height: 145, padding: '10px 12px', boxSizing: 'border-box', overflow: 'hidden' }}>
+        {/* Avatar + name row */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
+          <div className="skeleton-shimmer" style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div className="skeleton-shimmer" style={{ height: 9, width: '55%' }} />
+            <div className="skeleton-shimmer" style={{ height: 7, width: '35%' }} />
+          </div>
+        </div>
+        {/* Text lines */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div className="skeleton-shimmer" style={{ height: 7, width: '100%' }} />
+          <div className="skeleton-shimmer" style={{ height: 7, width: '88%' }} />
+          <div className="skeleton-shimmer" style={{ height: 7, width: '72%' }} />
+        </div>
+        {/* Footer */}
+        <div style={{ position: 'absolute', bottom: 8, left: 12, right: 12, display: 'flex', gap: 8 }}>
+          <div className="skeleton-shimmer" style={{ height: 7, width: 30 }} />
+          <div className="skeleton-shimmer" style={{ height: 7, width: 30 }} />
         </div>
       </div>
     </div>
@@ -204,11 +251,12 @@ const TITLE_DECOS: Record<string, DecoConfig> = {
   'hari-h-konser':    { type: 'tape', left: -6, top: -18, width: 84, height: 58, rotate: 0 },
 }
 
-function CategorySection({ stage, config, posts, onSelect }: {
-  stage: string; config: StageConfig; posts: PostCard[]; onSelect: (s: string) => void
+function CategorySection({ stage, config, posts, onSelect, isLoading, showSkeleton }: {
+  stage: string; config: StageConfig; posts: PostCard[]; onSelect: (s: string) => void; isLoading?: boolean; showSkeleton?: boolean
 }) {
   const deco = TITLE_DECOS[stage]
   const featuredPosts = posts.filter(p => p.is_featured)
+  const [seeMoreHovered, setSeeMoreHovered] = useState(false)
 
   return (
     <div style={{ padding: '28px 0 0' }}>
@@ -234,27 +282,35 @@ function CategorySection({ stage, config, posts, onSelect }: {
         {config.description}
       </p>
 
-      {/* Card + See More — See More sits inside the stack's right-layer padding */}
+      {/* Card + See More */}
       <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: 32 }}>
-        {/* Card stack — clickable */}
         <div
-          style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
-          onClick={() => onSelect(stage)}
+          style={{ flex: 1, minWidth: 0, cursor: isLoading ? 'default' : 'pointer' }}
+          onMouseEnter={isLoading ? undefined : playHover}
+          onClick={isLoading ? undefined : () => { playClick(); onSelect(stage) }}
         >
-          <CardStack stage={stage} posts={featuredPosts} isPhoto={false} onSelect={onSelect} />
+          {isLoading && showSkeleton
+            ? <SkeletonCardStack />
+            : !isLoading
+              ? <CardStack stage={stage} posts={featuredPosts} isPhoto={false} onSelect={onSelect} />
+              : <div style={{ paddingRight: 22, paddingBottom: 18, maxWidth: 270, height: 163 }} />}
         </div>
 
-        {/* See More — close to card's right edge */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, paddingLeft: 6, paddingRight: 10, flexShrink: 0 }}>
-          <button
-            onClick={() => onSelect(stage)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
-          >
-            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 11, lineHeight: '14px', color: '#FB304C' }}>See</span>
-            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 11, lineHeight: '14px', color: '#FB304C' }}>More</span>
-            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 13, color: '#FB304C' }}>→</span>
-          </button>
-        </div>
+        {/* See More — hidden while loading */}
+        {!isLoading && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 145, paddingLeft: 6, paddingRight: 10, flexShrink: 0 }}>
+            <button
+              onMouseEnter={() => { setSeeMoreHovered(true); playHover() }}
+              onMouseLeave={() => setSeeMoreHovered(false)}
+              onClick={() => { playClick(); onSelect(stage) }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
+            >
+              <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 11, lineHeight: '14px', color: seeMoreHovered ? '#000' : '#FB304C' }}>See</span>
+              <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 11, lineHeight: '14px', color: seeMoreHovered ? '#000' : '#FB304C' }}>More</span>
+              <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 13, color: seeMoreHovered ? '#000' : '#FB304C' }}>→</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -8,6 +8,7 @@ interface Props {
   posts: PostCard[]
   isPhoto: boolean
   onSelect: (stage: string) => void
+  isLoading?: boolean
 }
 
 const spring = { type: 'spring' as const, stiffness: 300, damping: 28 }
@@ -16,15 +17,24 @@ const layer3 = { rest: { x: 16, y: 14, rotate: 2.2 }, hover: { x: 20, y: 18, rot
 const layer2 = { rest: { x: 8, y: 7, rotate: 1.1 }, hover: { x: 11, y: 10, rotate: 2.0 } }
 const topLayer = { rest: { rotate: 0, y: 0, x: 0 }, hover: { rotate: -1.2, y: -3, x: -1 } }
 
-export function CardStack({ stage, posts, isPhoto, onSelect }: Props) {
+export function CardStack({ stage, posts, isPhoto, onSelect, isLoading }: Props) {
   const latest = posts[0]
   if (!latest) {
-    // Empty state — still show the stack outline
     return (
       <div style={{ paddingRight: 22, paddingBottom: 18, maxWidth: 270 }}>
-        <div style={{ height: 145, border: '1px dashed #FB304C', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-main)', fontSize: 9, color: '#BBB' }}>Belum ada post</span>
-        </div>
+        {isLoading ? (
+          // Skeleton — pulsing card outline so the page feels intentional, not broken
+          <motion.div
+            animate={{ opacity: [0.35, 0.75, 0.35] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ height: 145, border: '1px solid #FB304C', borderRadius: 6, background: '#fff' }}
+          />
+        ) : (
+          // Truly empty category
+          <div style={{ height: 145, border: '1px dashed #FB304C', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: 'var(--font-main)', fontSize: 9, color: '#BBB' }}>Belum ada post</span>
+          </div>
+        )}
       </div>
     )
   }
@@ -51,7 +61,6 @@ export function CardStack({ stage, posts, isPhoto, onSelect }: Props) {
       <motion.div
         className="card"
         style={{ zIndex: 10, position: 'relative', borderRadius: 6, overflow: 'hidden' }}
-        layoutId={`card-top-${stage}`}
         variants={topLayer}
         transition={spring}
       >

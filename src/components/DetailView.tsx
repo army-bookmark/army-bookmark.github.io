@@ -1,9 +1,10 @@
 'use client'
-import { useRef } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
 import { asset } from '@/lib/asset'
 import { DetailItem } from './DetailItem'
+import { playClick, playHover } from '@/lib/sounds'
 
 interface StageConfig { name: string; description: string }
 interface Props {
@@ -14,28 +15,35 @@ interface Props {
 }
 
 const EASE_DROP = [0.16, 1, 0.3, 1] as const
-const EASE_LIFT = [0.7, 0, 0.84, 0] as const
 
-const listVariants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.08, delayChildren: 0 } },
-  exit: { transition: { staggerChildren: 0.06, staggerDirection: -1 } },
+// Stacking collapse: cards 2,3,4 fly up to the position of card 1
+function getCollapseTarget(idx: number) {
+  if (idx === 0) return { opacity: 0, scale: 0.97, y: 0 }
+  return {
+    opacity: 0,
+    scale: Math.max(0.95 - (idx - 1) * 0.02, 0.83),
+    y: -(idx * 135),
+  }
 }
-const itemVariants = {
-  hidden: { opacity: 0, y: -40, scale: 0.96 },
-  show: {
-    opacity: 1, y: 0, scale: 1,
-    transition: { duration: 0.45, ease: EASE_DROP },
-  },
-  exit: {
-    opacity: 0, y: -40, scale: 0.96,
-    transition: { duration: 0.35, ease: EASE_LIFT },
-  },
+
+function getCollapseTransition(idx: number) {
+  if (idx === 0) return { duration: 0.4, ease: EASE_DROP, delay: 0.15 }
+  return { duration: 0.4, ease: EASE_DROP, delay: Math.min((idx - 1) * 0.05, 0.15) }
 }
 
 export function DetailView({ config, posts, onBack }: Props) {
+  const [isCollapsing, setIsCollapsing] = useState(false)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
+  const mountTime = useRef(Date.now())
+
+  const handleBack = () => {
+    if (isCollapsing) return
+    setIsCollapsing(true)
+    // Cards animate for 400ms; call onBack at 300ms so home crossfades in
+    // while the last card is finishing — feels continuous rather than staged
+    setTimeout(() => onBack(), 300)
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -44,7 +52,7 @@ export function DetailView({ config, posts, onBack }: Props) {
   const handleTouchEnd = (e: React.TouchEvent) => {
     const dx = e.changedTouches[0].clientX - touchStartX.current
     const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
-    if (dx > 64 && dy < 50) onBack()
+    if (dx > 64 && dy < 50) handleBack()
   }
 
   const reversed = [...posts].reverse()
@@ -52,8 +60,6 @@ export function DetailView({ config, posts, onBack }: Props) {
     ...reversed.filter(p => p.is_featured),
     ...reversed.filter(p => !p.is_featured),
   ]
-  const featuredPosts = sorted.filter(p => p.is_featured)
-  const otherPosts = sorted.filter(p => !p.is_featured)
 
   return (
     <div
@@ -70,7 +76,8 @@ export function DetailView({ config, posts, onBack }: Props) {
         borderBottom: '1px solid #E0E0E0',
       }}>
         <button
-          onClick={onBack}
+          onClick={() => { playClick(); handleBack() }}
+          onMouseEnter={playHover}
           aria-label="Kembali"
           style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
@@ -84,7 +91,7 @@ export function DetailView({ config, posts, onBack }: Props) {
       </div>
 
       {/* ── CONTENT ── */}
-      <div style={{ flex: 1, maxWidth: 430, width: '100%', margin: '0 auto', padding: '24px 28px 80px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <div style={{ flex: 1, maxWidth: 430, width: '100%', margin: '0 auto', padding: '24px 28px 80px' }}>
 
         {posts.length === 0 && (
           <p style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: '#888', textAlign: 'center', paddingTop: 40 }}>
@@ -92,42 +99,39 @@ export function DetailView({ config, posts, onBack }: Props) {
           </p>
         )}
 
-        {/* Featured cards — stagger drop-in from top */}
-        {featuredPosts.length > 0 && (
-          <motion.div
-            variants={listVariants}
-            initial="hidden"
-            animate="show"
-            style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
-          >
-            {featuredPosts.map(item => (
-              <motion.div key={item.id} variants={itemVariants}>
-                <DetailItem item={item} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {sorted.flatMap((item, idx) => {
+            const nodes = []
 
-        {/* Divider: no label, just the border */}
-        {featuredPosts.length > 0 && otherPosts.length > 0 && (
-          <div style={{ borderBottom: '1px solid #DDD', margin: '20px 0' }} />
-        )}
+            // Divider between featured and non-featured groups
+            if (idx > 0 && !item.is_featured && sorted[idx - 1].is_featured) {
+              nodes.push(
+                <div key={`divider-${idx}`} style={{ borderBottom: '1px solid #DDD', margin: '-4px 0' }} />
+              )
+            }
 
-        {/* Other cards — stagger drop-in from top */}
-        {otherPosts.length > 0 && (
-          <motion.div
-            variants={listVariants}
-            initial="hidden"
-            animate="show"
-            style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
-          >
-            {otherPosts.map(item => (
-              <motion.div key={item.id} variants={itemVariants}>
-                <DetailItem item={item} />
+            nodes.push(
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: -30, scale: 0.97 }}
+                animate={
+                  isCollapsing
+                    ? getCollapseTarget(idx)
+                    : { opacity: 1, y: 0, scale: 1 }
+                }
+                transition={
+                  isCollapsing
+                    ? getCollapseTransition(idx)
+                    : { duration: 0.5, ease: EASE_DROP, delay: idx * 0.07 }
+                }
+              >
+                <DetailItem item={item} typewriterStartAt={mountTime.current + Math.round((idx * 0.07 + 0.5) * 1000)} />
               </motion.div>
-            ))}
-          </motion.div>
-        )}
+            )
+
+            return nodes
+          })}
+        </div>
       </div>
 
       {/* ── FOOTER ── */}
@@ -138,6 +142,8 @@ export function DetailView({ config, posts, onBack }: Props) {
           href="https://trakteer.id/rememorari/tip"
           target="_blank"
           rel="noopener noreferrer"
+          onMouseEnter={playHover}
+          onClick={playClick}
           style={{
             display: 'inline-block',
             fontFamily: 'var(--font-main)', fontSize: 12,
