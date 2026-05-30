@@ -197,8 +197,8 @@ function HomePage({ grouped, onSelect, loading, showSkeleton, savedScrollY }: { 
             alt="" aria-hidden="true"
             style={{
               position: 'absolute',
-              top: 200, left: '50%',
-              width: '68%',
+              top: 205, left: '50%',
+              width: '75%',
               transform: 'translateX(-50%)',
               pointerEvents: 'none',
             }}
@@ -249,7 +249,7 @@ function HomePage({ grouped, onSelect, loading, showSkeleton, savedScrollY }: { 
         </div>
 
         {/* ── FOOTER ── */}
-        <div style={{ background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '150px 0 52px' }}>
+        <div style={{ background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '240px 0 52px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 50, height: 68, objectFit: 'contain' }} />
         </div>
