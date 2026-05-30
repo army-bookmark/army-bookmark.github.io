@@ -44,7 +44,7 @@ function TypewriterText({ text, startAt }: { text: string; startAt: number }) {
 
 function CaptionBubble({ text, startAt }: { text: string; startAt: number }) {
   return (
-    <div style={{ position: 'relative', border: '1px solid #000', background: '#FFF', borderRadius: 6, padding: '10px 14px', marginBottom: 14, fontFamily: 'var(--font-main)', fontSize: 12, lineHeight: '17px', color: '#000' }}>
+    <div style={{ position: 'relative', border: '1px solid #000', background: '#FFF', borderRadius: 0, padding: '10px 14px', marginBottom: 14, fontFamily: 'var(--font-main)', fontSize: 12, lineHeight: '17px', color: '#000' }}>
       <TypewriterText text={text} startAt={startAt} />
       <div style={{ position: 'absolute', bottom: -6, left: 24, width: 10, height: 10, background: '#FFF', borderRight: '1px solid #000', borderBottom: '1px solid #000', transform: 'rotate(45deg)' }} />
     </div>
@@ -60,7 +60,7 @@ export function DetailItem({ item, typewriterStartAt }: { item: PostCard; typewr
     <>
       {item.caption && <CaptionBubble text={item.caption} startAt={typewriterStartAt} />}
 
-      <div style={{ background: '#FFFFFF', border: '1px solid #FB304C', borderRadius: 6, overflow: 'hidden', padding: '12px 14px', boxShadow: '3px 6px 9px rgba(0,0,0,0.18)', boxSizing: 'border-box' }}>
+      <div style={{ background: '#FFFFFF', border: '1px solid #FB304C', borderRadius: 0, overflow: 'hidden', padding: '12px 14px', boxShadow: '3px 6px 9px rgba(0,0,0,0.18)', boxSizing: 'border-box' }}>
 
         {/* Author row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -91,7 +91,7 @@ export function DetailItem({ item, typewriterStartAt }: { item: PostCard; typewr
           <img
             src={item.image_url}
             alt=""
-            style={{ width: '100%', borderRadius: 6, objectFit: 'cover', maxHeight: 200, marginBottom: 10, display: 'block' }}
+            style={{ width: '100%', borderRadius: 0, objectFit: 'cover', maxHeight: 200, marginBottom: 10, display: 'block' }}
           />
         )}
 

@@ -252,10 +252,10 @@ function SkeletonCardStack() {
   return (
     <div style={{ position: 'relative', paddingRight: 22, paddingBottom: 18, maxWidth: 270 }}>
       {/* Background stack layers */}
-      <div style={{ position: 'absolute', inset: 0, right: 22, bottom: 18, border: '1px solid rgba(251,48,76,0.25)', borderRadius: 6 }} />
-      <div style={{ position: 'absolute', inset: 0, right: 22, bottom: 18, border: '1px solid rgba(251,48,76,0.5)', borderRadius: 6, transform: 'translate(4px, 4px)' }} />
+      <div style={{ position: 'absolute', inset: 0, right: 22, bottom: 18, border: '1px solid rgba(251,48,76,0.25)', borderRadius: 0 }} />
+      <div style={{ position: 'absolute', inset: 0, right: 22, bottom: 18, border: '1px solid rgba(251,48,76,0.5)', borderRadius: 0, transform: 'translate(4px, 4px)' }} />
       {/* Top card */}
-      <div style={{ position: 'relative', zIndex: 10, background: '#fff', border: '1.5px solid #FB304C', borderRadius: 6, height: 145, padding: '10px 12px', boxSizing: 'border-box', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', zIndex: 10, background: '#fff', border: '1.5px solid #FB304C', borderRadius: 0, height: 145, padding: '10px 12px', boxSizing: 'border-box', overflow: 'hidden' }}>
         {/* Avatar + name row */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
           <div className="skeleton-shimmer" style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }} />

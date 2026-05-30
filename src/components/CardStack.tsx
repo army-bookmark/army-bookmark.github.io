@@ -27,11 +27,11 @@ export function CardStack({ stage, posts, isPhoto, onSelect, isLoading }: Props)
           <motion.div
             animate={{ opacity: [0.35, 0.75, 0.35] }}
             transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ height: 145, border: '1px solid #FB304C', borderRadius: 6, background: '#fff' }}
+            style={{ height: 145, border: '1px solid #FB304C', borderRadius: 0, background: '#fff' }}
           />
         ) : (
           // Truly empty category
-          <div style={{ height: 145, border: '1px dashed #FB304C', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ height: 145, border: '1px dashed #FB304C', borderRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontFamily: 'var(--font-main)', fontSize: 9, color: '#BBB' }}>Belum ada post</span>
           </div>
         )}
@@ -49,18 +49,18 @@ export function CardStack({ stage, posts, isPhoto, onSelect, isLoading }: Props)
     >
       {/* Layer 3 — deepest */}
       <motion.div
-        style={{ position: 'absolute', inset: 0, border: '1px solid #FB304C', right: 22, bottom: 18, zIndex: 1, pointerEvents: 'none', borderRadius: 6 }}
+        style={{ position: 'absolute', inset: 0, border: '1px solid #FB304C', right: 22, bottom: 18, zIndex: 1, pointerEvents: 'none', borderRadius: 0 }}
         variants={layer3} transition={spring}
       />
       {/* Layer 2 — middle */}
       <motion.div
-        style={{ position: 'absolute', inset: 0, border: '1px solid #FB304C', right: 22, bottom: 18, zIndex: 2, pointerEvents: 'none', borderRadius: 6 }}
+        style={{ position: 'absolute', inset: 0, border: '1px solid #FB304C', right: 22, bottom: 18, zIndex: 2, pointerEvents: 'none', borderRadius: 0 }}
         variants={layer2} transition={spring}
       />
       {/* Top card */}
       <motion.div
         className="card"
-        style={{ zIndex: 10, position: 'relative', borderRadius: 6, overflow: 'hidden' }}
+        style={{ zIndex: 10, position: 'relative', borderRadius: 0, overflow: 'hidden' }}
         variants={topLayer}
         transition={spring}
       >
