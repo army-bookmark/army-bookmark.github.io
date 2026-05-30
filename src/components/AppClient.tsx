@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
@@ -35,11 +35,8 @@ const BAR_STAGES  = ['scam-alert', 'faq-konser']
 export function AppClient() {
   const [posts, setPosts] = useState<PostCard[]>([])
   const [loading, setLoading] = useState(true)
-  // Only show shimmer if data takes longer than 250 ms — fast loads skip it entirely
   const [showSkeleton, setShowSkeleton] = useState(false)
   const [activeStage, setActiveStage] = useState<string | null>(null)
-  const hasVisitedDetail = useRef(false)
-  const savedScrollY = useRef(0)
 
   useEffect(() => {
     const skeletonTimer = setTimeout(() => setShowSkeleton(true), 250)
@@ -56,57 +53,48 @@ export function AppClient() {
   )
   const activePosts = activeStage ? grouped[activeStage] ?? [] : []
 
-  const handleSelect = (stage: string) => {
-    savedScrollY.current = typeof window !== 'undefined' ? window.scrollY : 0
-    hasVisitedDetail.current = true
-    setActiveStage(stage)
-  }
-
   return (
-    <AnimatePresence>
-      {!activeStage ? (
-        <motion.div
-          key="home"
-          initial={hasVisitedDetail.current ? { opacity: 0 } : { opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1, transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] } }}
-          exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
-        >
-          <HomePage grouped={grouped} onSelect={handleSelect} loading={loading} showSkeleton={showSkeleton} savedScrollY={savedScrollY.current} />
-        </motion.div>
-      ) : (
-        <motion.div
-          key={`detail-${activeStage}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.2, ease: 'linear' } }}
-          exit={{ opacity: 0, transition: { duration: 0.18, ease: 'linear' } }}
-          style={{ minHeight: '100dvh', background: '#FFFFFF' }}
-        >
-          <DetailView
-            stage={activeStage}
-            config={STAGE_CONFIG[activeStage] ?? { name: activeStage, description: '' }}
-            posts={activePosts}
-            onBack={() => setActiveStage(null)}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div style={{ position: 'relative' }}>
+      {/* Home is always mounted — scroll position preserved, no blank-flash on back */}
+      <HomePage
+        grouped={grouped}
+        onSelect={setActiveStage}
+        loading={loading}
+        showSkeleton={showSkeleton}
+      />
+
+      {/* Detail overlays home via position:fixed — fades in over it, never a blank frame */}
+      <AnimatePresence>
+        {activeStage && (
+          <motion.div
+            key={`detail-${activeStage}`}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2, ease: 'linear' } }}
+            style={{
+              position: 'fixed', inset: 0,
+              zIndex: 100, background: '#FFFFFF', overflowY: 'auto',
+            }}
+          >
+            <DetailView
+              stage={activeStage}
+              config={STAGE_CONFIG[activeStage] ?? { name: activeStage, description: '' }}
+              posts={activePosts}
+              onBack={() => setActiveStage(null)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
 // ── Home page ─────────────────────────────────────────────────────────────────
 
-function HomePage({ grouped, onSelect, loading, showSkeleton, savedScrollY }: { grouped: Record<string, PostCard[]>; onSelect: (s: string) => void; loading: boolean; showSkeleton: boolean; savedScrollY: number }) {
+function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Record<string, PostCard[]>; onSelect: (s: string) => void; loading: boolean; showSkeleton: boolean }) {
   const stackStages = STAGE_ORDER.filter(s => !BAR_STAGES.includes(s))
   const [scamHovered, setScamHovered] = useState(false)
   const [faqHovered, setFaqHovered]   = useState(false)
-
-  // Restore exact scroll position on return from detail
-  useEffect(() => {
-    if (savedScrollY > 0) {
-      const t = setTimeout(() => window.scrollTo(0, savedScrollY), 50)
-      return () => clearTimeout(t)
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
