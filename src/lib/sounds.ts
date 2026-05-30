@@ -84,6 +84,12 @@ export function playClick() {
   noiseHP(ac, 0.2, 850, 7, 38)
 }
 
+// Pre-warm AudioContext on the very first pointer interaction so that
+// sounds play reliably from the first hover/click on page load
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', () => getCtx(), { once: true })
+}
+
 // Horror sting — dissonant tritone sawtooth drone + low rumble + eerie ring
 export function playHorrorHover() {
   const ac = getCtx(); if (!ac) return

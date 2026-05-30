@@ -39,6 +39,7 @@ export function AppClient() {
   const [showSkeleton, setShowSkeleton] = useState(false)
   const [activeStage, setActiveStage] = useState<string | null>(null)
   const hasVisitedDetail = useRef(false)
+  const savedScrollY = useRef(0)
 
   useEffect(() => {
     const skeletonTimer = setTimeout(() => setShowSkeleton(true), 250)
@@ -56,6 +57,7 @@ export function AppClient() {
   const activePosts = activeStage ? grouped[activeStage] ?? [] : []
 
   const handleSelect = (stage: string) => {
+    savedScrollY.current = typeof window !== 'undefined' ? window.scrollY : 0
     hasVisitedDetail.current = true
     setActiveStage(stage)
   }
@@ -69,7 +71,7 @@ export function AppClient() {
           animate={{ opacity: 1, scale: 1, transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] } }}
           exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
         >
-          <HomePage grouped={grouped} onSelect={handleSelect} loading={loading} showSkeleton={showSkeleton} />
+          <HomePage grouped={grouped} onSelect={handleSelect} loading={loading} showSkeleton={showSkeleton} savedScrollY={savedScrollY.current} />
         </motion.div>
       ) : (
         <motion.div
@@ -77,7 +79,7 @@ export function AppClient() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.2, ease: 'linear' } }}
           exit={{ opacity: 0, transition: { duration: 0.18, ease: 'linear' } }}
-          style={{ minHeight: '100dvh', background: '#F7F6F2' }}
+          style={{ minHeight: '100dvh', background: '#FFFFFF' }}
         >
           <DetailView
             stage={activeStage}
@@ -93,11 +95,21 @@ export function AppClient() {
 
 // ── Home page ─────────────────────────────────────────────────────────────────
 
-function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Record<string, PostCard[]>; onSelect: (s: string) => void; loading: boolean; showSkeleton: boolean }) {
+function HomePage({ grouped, onSelect, loading, showSkeleton, savedScrollY }: { grouped: Record<string, PostCard[]>; onSelect: (s: string) => void; loading: boolean; showSkeleton: boolean; savedScrollY: number }) {
   const stackStages = STAGE_ORDER.filter(s => !BAR_STAGES.includes(s))
+  const [scamHovered, setScamHovered] = useState(false)
+  const [faqHovered, setFaqHovered]   = useState(false)
+
+  // Restore exact scroll position on return from detail
+  useEffect(() => {
+    if (savedScrollY > 0) {
+      const t = setTimeout(() => window.scrollTo(0, savedScrollY), 50)
+      return () => clearTimeout(t)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{ background: '#F7F6F2', minHeight: '100vh' }}>
+    <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
       <div style={{ maxWidth: 430, width: '100%', margin: '0 auto', position: 'relative', overflowX: 'hidden' }}>
 
         {/* ── HEADER ── */}
@@ -176,20 +188,60 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
           })}
         </div>
 
-        {/* ── BOTTOM BARS ── */}
-        <div style={{ marginTop: 28 }}>
+        {/* ── BOTTOM BARS ── brutalist asymmetric drawers */}
+        <div style={{ marginTop: 28, paddingTop: 28, position: 'relative', paddingBottom: 110 }}>
+          {/* Signature — first in DOM so buttons paint on top; centered below FAQ */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={asset('/assets/Signature.png')}
+            alt="" aria-hidden="true"
+            style={{
+              position: 'absolute',
+              top: 200, left: '50%',
+              width: '68%',
+              transform: 'translateX(-50%)',
+              pointerEvents: 'none',
+            }}
+          />
+          {/* SCAM ALLERT — aggressively wider, tilted left */}
           <button
-            onMouseEnter={playHorrorHover}
+            onMouseEnter={() => { setScamHovered(true); playHorrorHover() }}
+            onMouseLeave={() => setScamHovered(false)}
             onClick={() => { playClick(); onSelect('scam-alert') }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 70, background: '#FB304C', border: 'none', cursor: 'pointer' }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: 'calc(100% + 12px)',
+              padding: '0 24px', height: 90,
+              background: '#FB304C', border: 'none', cursor: 'pointer',
+              position: 'relative', zIndex: 2,
+              transform: scamHovered
+                ? 'rotate(0deg) translateX(0)'
+                : 'rotate(-2.8deg) translateX(-6px)',
+              transition: 'transform 300ms cubic-bezier(0.68, -0.6, 0.32, 1.6)',
+              transformOrigin: 'left center',
+            }}
           >
             <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>SCAM ALLERT</span>
             <span style={{ fontSize: 20, color: '#fff' }}>⚠︎</span>
           </button>
+          {/* FAQ — countering tilt, offset right */}
           <button
-            onMouseEnter={playHover}
+            onMouseEnter={() => { setFaqHovered(true); playHover() }}
+            onMouseLeave={() => setFaqHovered(false)}
             onClick={() => { playClick(); onSelect('faq-konser') }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 24px', height: 70, background: '#000', border: 'none', cursor: 'pointer', marginTop: -4 }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%',
+              padding: '0 24px', height: 90,
+              background: '#000', border: 'none', cursor: 'pointer',
+              position: 'relative', zIndex: 1,
+              transform: faqHovered
+                ? 'rotate(0deg) translate(0, 0)'
+                : 'rotate(1.8deg) translateY(4px) translateX(4px)',
+              transition: 'transform 300ms cubic-bezier(0.68, -0.6, 0.32, 1.6)',
+              transformOrigin: 'left center',
+              marginTop: -4,
+            }}
           >
             <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>F.A.Q Konser</span>
             <span style={{ fontSize: 20, color: '#fff' }}>☺︎</span>
@@ -197,7 +249,7 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
         </div>
 
         {/* ── FOOTER ── */}
-        <div style={{ background: '#F7F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0 52px' }}>
+        <div style={{ background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '150px 0 52px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 50, height: 68, objectFit: 'contain' }} />
         </div>

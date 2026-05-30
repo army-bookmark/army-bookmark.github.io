@@ -65,14 +65,14 @@ export function DetailView({ config, posts, onBack }: Props) {
     <div
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      style={{ minHeight: '100dvh', background: '#F7F6F2', display: 'flex', flexDirection: 'column' }}
+      style={{ minHeight: '100dvh', background: '#FFFFFF', display: 'flex', flexDirection: 'column' }}
     >
 
       {/* ── HEADER ── */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 50,
         padding: '24px 34px 16px',
-        background: '#F7F6F2',
+        background: '#FFFFFF',
         borderBottom: '1px solid #E0E0E0',
       }}>
         <button
@@ -135,7 +135,7 @@ export function DetailView({ config, posts, onBack }: Props) {
       </div>
 
       {/* ── FOOTER ── */}
-      <div style={{ background: '#F7F6F2', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0 48px', gap: 16 }}>
+      <div style={{ background: '#FFFFFF', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0 48px', gap: 16 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 50, height: 68, objectFit: 'contain', opacity: 0.25 }} />
         <a
