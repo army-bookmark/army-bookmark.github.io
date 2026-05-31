@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [visual-hifi]
+    branches: [main, visual-hifi]
   workflow_dispatch:
 
 permissions:
