@@ -2,7 +2,6 @@ export interface PostCard {
   id: string
   tweet_url: string
   stage: string
-  category_tag: string
   caption: string
   platform: 'x' | 'threads' | 'tiktok'
   username: string
