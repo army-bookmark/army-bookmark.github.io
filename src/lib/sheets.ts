@@ -1,8 +1,8 @@
 import type { PostCard } from './types'
 
-// New sheet columns (0-indexed, header row skipped):
-// 0: id | 1: stage | 2: category_tag | 3: caption | 4: source_url
-// 5: source_handle | 6: date_added | 7: is_featured | 8: is_pinned
+// Sheet columns (0-indexed, header row skipped):
+// 0: id | 1: stage | 2: caption | 3: source_url | 4: source_handle
+// 5: date_added | 6: is_featured
 
 const CSV_URL =
   process.env.NEXT_PUBLIC_SHEET_CSV_URL ||
@@ -87,10 +87,9 @@ export async function getSheetData(): Promise<PostCard[]> {
       const id          = (values[0] ?? '').trim() || String(i)
       const rawStage    = (values[1] ?? '').trim()
       const stage       = STAGE_MAP[rawStage] ?? rawStage
-      const category_tag = (values[2] ?? '').trim()
-      const caption     = (values[3] ?? '').trim()
-      const tweet_url   = (values[4] ?? '').trim()
-      const srcHandle   = (values[5] ?? '').trim()
+      const caption     = (values[2] ?? '').trim()
+      const tweet_url   = (values[3] ?? '').trim()
+      const srcHandle   = (values[4] ?? '').trim()
 
       if (!tweet_url) return null
 
@@ -98,16 +97,15 @@ export async function getSheetData(): Promise<PostCard[]> {
       const { username, handle } = parseUsername(tweet_url, srcHandle || undefined)
       const photo_url = buildPhotoUrl(username, platform)
 
-      const isFeatured = (values[7] ?? '').trim().toUpperCase() === 'TRUE'
-      const likes      = (values[9] ?? '').trim() || undefined
-      const comments   = (values[10] ?? '').trim() || undefined
-      const image_url  = (values[11] ?? '').trim() || undefined
+      const isFeatured = (values[6] ?? '').trim().toUpperCase() === 'TRUE'
+      const likes      = (values[7] ?? '').trim() || undefined
+      const comments   = (values[8] ?? '').trim() || undefined
+      const image_url  = (values[9] ?? '').trim() || undefined
 
       return {
         id,
         tweet_url,
         stage,
-        category_tag,
         caption,
         platform,
         username,
