@@ -45,22 +45,30 @@ function parseCSVLine(line: string): string[] {
   return results
 }
 
-function parsePlatform(url: string): 'x' | 'threads' | 'tiktok' {
-  if (url.includes('threads.net')) return 'threads'
+function parsePlatform(url: string): 'x' | 'threads' | 'tiktok' | 'instagram' | 'pinterest' | 'facebook' | 'link' {
+  if (url.includes('x.com') || url.includes('twitter.com')) return 'x'
+  if (url.includes('threads.net') || url.includes('threads.com')) return 'threads'
   if (url.includes('tiktok.com')) return 'tiktok'
-  return 'x'
+  if (url.includes('instagram.com')) return 'instagram'
+  if (url.includes('pinterest.com') || url.includes('pin.it')) return 'pinterest'
+  if (url.includes('facebook.com') || url.includes('fb.com') || url.includes('fb.watch')) return 'facebook'
+  return 'link'
 }
 
-// Extract clean username from the tweet/post URL
+// Extract clean username from the post URL
 function parseUsername(url: string, fallbackHandle?: string): { username: string; handle: string } {
   try {
     const u = new URL(url)
-    if (u.hostname.includes('threads.net')) {
-      const parts = u.pathname.split('/').filter(Boolean)
+    const parts = u.pathname.split('/').filter(Boolean)
+    // Instagram post/reel URLs (/p/ or /reel/) don't have username in path — use fallback
+    if (u.hostname.includes('instagram.com') && parts[0] && ['p', 'reel', 'tv'].includes(parts[0])) {
+      const raw = (fallbackHandle || '@unknown').replace('@', '')
+      return { username: raw, handle: fallbackHandle || `@${raw}` }
+    }
+    if (u.hostname.includes('threads.net') || u.hostname.includes('threads.com')) {
       const raw = parts[0].replace('@', '')
       return { username: raw, handle: fallbackHandle || `@${raw}` }
     }
-    const parts = u.pathname.split('/').filter(Boolean)
     const username = parts[0] ?? 'unknown'
     return { username, handle: fallbackHandle || `@${username}` }
   } catch {
@@ -68,9 +76,13 @@ function parseUsername(url: string, fallbackHandle?: string): { username: string
   }
 }
 
-function buildPhotoUrl(username: string, platform: 'x' | 'threads' | 'tiktok'): string {
+function buildPhotoUrl(username: string, platform: 'x' | 'threads' | 'tiktok' | 'instagram' | 'pinterest' | 'facebook' | 'link'): string {
+  if (platform === 'x') return `https://unavatar.io/x/${username}`
   if (platform === 'threads') return `https://unavatar.io/instagram/${username}`
   if (platform === 'tiktok') return `https://unavatar.io/tiktok/${username}`
+  if (platform === 'instagram') return `https://unavatar.io/instagram/${username}`
+  if (platform === 'pinterest') return `https://unavatar.io/pinterest/${username}`
+  if (platform === 'facebook') return `https://unavatar.io/facebook/${username}`
   return `https://unavatar.io/x/${username}`
 }
 

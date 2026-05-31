@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-export function useTweetText(url: string, platform: 'x' | 'threads' | 'tiktok'): string | null {
+export function useTweetText(url: string, platform: 'x' | 'threads' | 'tiktok' | 'instagram' | 'pinterest' | 'facebook' | 'link'): string | null {
   const [text, setText] = useState<string | null>(null)
 
   useEffect(() => {

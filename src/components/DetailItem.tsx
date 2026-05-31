@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import type { PostCard } from '@/lib/types'
 import { useTweetText } from '@/lib/useTweetText'
-import { Avatar, XIcon, ThreadsIcon, TikTokIcon } from './TopCard'
+import { Avatar, XIcon, ThreadsIcon, TikTokIcon, InstagramIcon, PinterestIcon, FacebookIcon, LinkIcon } from './TopCard'
 import { playKeyClick, playHover, playClick } from '@/lib/sounds'
 
 // ── Terminal typewriter ───────────────────────────────────────────────────────
@@ -72,9 +72,13 @@ export function DetailItem({ item, typewriterStartAt }: { item: PostCard; typewr
             <div style={{ fontFamily: 'var(--font-main)', fontSize: 11, color: '#888' }}>{item.handle}</div>
           </div>
           <div style={{ color: '#000', flexShrink: 0 }}>
-            {item.platform === 'x' && <XIcon size={14} />}
-            {item.platform === 'threads' && <ThreadsIcon size={13} />}
-            {item.platform === 'tiktok' && <TikTokIcon size={13} />}
+            {item.platform === 'x'         && <XIcon size={14} />}
+            {item.platform === 'threads'   && <ThreadsIcon size={13} />}
+            {item.platform === 'tiktok'    && <TikTokIcon size={13} />}
+            {item.platform === 'instagram' && <InstagramIcon size={14} />}
+            {item.platform === 'pinterest' && <PinterestIcon size={14} />}
+            {item.platform === 'facebook'  && <FacebookIcon size={14} />}
+            {item.platform === 'link'      && <LinkIcon size={14} />}
           </div>
         </div>
 

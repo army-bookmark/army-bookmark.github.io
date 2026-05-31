@@ -3,7 +3,7 @@ export interface PostCard {
   tweet_url: string
   stage: string
   caption: string
-  platform: 'x' | 'threads' | 'tiktok'
+  platform: 'x' | 'threads' | 'tiktok' | 'instagram' | 'pinterest' | 'facebook' | 'link'
   username: string
   handle: string
   initials: string
