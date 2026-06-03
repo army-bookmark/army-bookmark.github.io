@@ -30,6 +30,33 @@ const STAGE_CONFIG: Record<string, StageConfig> = {
 const STAGE_ORDER = ['persiapan-tiket', 'war-tiket', 'udah-dapat-tiket', 'hari-h-konser', 'scam-alert', 'faq-konser']
 const BAR_STAGES  = ['scam-alert', 'faq-konser']
 
+// ── Date helpers ──────────────────────────────────────────────────────────────
+
+function parseDate(dateStr?: string): Date | null {
+  if (!dateStr) return null
+  const d = new Date(dateStr)
+  return isNaN(d.getTime()) ? null : d
+}
+
+function isWithin24h(dateStr?: string): boolean {
+  const d = parseDate(dateStr)
+  if (!d) return false
+  return Date.now() - d.getTime() < 24 * 60 * 60 * 1000
+}
+
+function getLastUpdated(grouped: Record<string, PostCard[]>): string | null {
+  const dates = Object.values(grouped).flat()
+    .map(p => parseDate(p.date_added))
+    .filter((d): d is Date => d !== null)
+  if (dates.length === 0) return null
+  const latest = new Date(Math.max(...dates.map(d => d.getTime())))
+  return latest.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function stageHasNew(posts: PostCard[]): boolean {
+  return posts.some(p => isWithin24h(p.date_added))
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 
 export function AppClient() {
@@ -157,6 +184,18 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
           </span>
         </div>
 
+        {/* ── LAST UPDATED ── */}
+        {!loading && (() => {
+          const lastUpdated = getLastUpdated(grouped)
+          return lastUpdated ? (
+            <div style={{ margin: '0 32px 4px' }}>
+              <span style={{ fontFamily: 'var(--font-main)', fontSize: 10, color: '#AAA' }}>
+                Update Terakhir {lastUpdated}
+              </span>
+            </div>
+          ) : null
+        })()}
+
         {/* ── CATEGORY STACKS ── */}
         <div style={{ paddingBottom: 8 }}>
           {stackStages.map(stage => {
@@ -171,6 +210,7 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
                 onSelect={onSelect}
                 isLoading={loading}
                 showSkeleton={showSkeleton}
+                hasNewContent={stageHasNew(grouped[stage] ?? [])}
               />
             )
           })}
@@ -209,7 +249,12 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
               transformOrigin: 'left center',
             }}
           >
-            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>SCAM ALLERT</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>SCAM ALLERT</span>
+              {stageHasNew(grouped['scam-alert'] ?? []) && (
+                <span style={{ fontFamily: 'var(--font-main)', fontSize: 8, fontWeight: 700, color: '#FB304C', background: '#FFFFFF', border: '3px solid #FFFFFF', borderRadius: 0, padding: '1px 7px', letterSpacing: '0.03em', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 3 }}><span style={{ fontSize: 6 }}>●</span> info terbaru</span>
+              )}
+            </span>
             <span style={{ fontSize: 20, color: '#fff' }}>⚠︎</span>
           </button>
           {/* FAQ — countering tilt, offset right */}
@@ -231,7 +276,12 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
               marginTop: -4,
             }}
           >
-            <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>F.A.Q Konser</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: '#fff' }}>F.A.Q Konser</span>
+              {stageHasNew(grouped['faq-konser'] ?? []) && (
+                <span style={{ fontFamily: 'var(--font-main)', fontSize: 8, fontWeight: 700, color: '#000', background: '#FFFFFF', border: '3px solid #FFFFFF', borderRadius: 0, padding: '1px 7px', letterSpacing: '0.03em', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 3 }}><span style={{ fontSize: 6 }}>●</span> info terbaru</span>
+              )}
+            </span>
             <span style={{ fontSize: 20, color: '#fff' }}>☺︎</span>
           </button>
         </div>
@@ -292,8 +342,8 @@ const TITLE_DECOS: Record<string, DecoConfig> = {
   'hari-h-konser':    { type: 'tape', left: -6, top: -18, width: 84, height: 58, rotate: 0 },
 }
 
-function CategorySection({ stage, config, posts, onSelect, isLoading, showSkeleton }: {
-  stage: string; config: StageConfig; posts: PostCard[]; onSelect: (s: string) => void; isLoading?: boolean; showSkeleton?: boolean
+function CategorySection({ stage, config, posts, onSelect, isLoading, showSkeleton, hasNewContent }: {
+  stage: string; config: StageConfig; posts: PostCard[]; onSelect: (s: string) => void; isLoading?: boolean; showSkeleton?: boolean; hasNewContent?: boolean
 }) {
   const deco = TITLE_DECOS[stage]
   const featuredPosts = posts.filter(p => p.is_featured)
@@ -330,11 +380,29 @@ function CategorySection({ stage, config, posts, onSelect, isLoading, showSkelet
           onMouseEnter={isLoading ? undefined : playHover}
           onClick={isLoading ? undefined : () => { playClick(); onSelect(stage) }}
         >
-          {isLoading && showSkeleton
-            ? <SkeletonCardStack />
-            : !isLoading
-              ? <CardStack stage={stage} posts={featuredPosts} isPhoto={false} onSelect={onSelect} />
-              : <div style={{ paddingRight: 22, paddingBottom: 18, maxWidth: 270, height: 163 }} />}
+          {/* Wrap card with relative so badge anchors to card bounds */}
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            {/* "info baru" dot+text badge — top-right border, straddling inside/outside */}
+            {hasNewContent && !isLoading && (
+              <span style={{
+                position: 'absolute', top: 0, right: 22, zIndex: 20,
+                transform: 'translateY(-50%)',
+                fontFamily: 'var(--font-main)', fontSize: 8, fontWeight: 700,
+                color: '#FB304C', background: '#FFFFFF',
+                border: '3px solid #FB304C', borderRadius: 0,
+                padding: '1px 7px', letterSpacing: '0.03em',
+                pointerEvents: 'none', whiteSpace: 'nowrap',
+                display: 'flex', alignItems: 'center', gap: 3,
+              }}>
+                <span style={{ fontSize: 6 }}>●</span> info terbaru
+              </span>
+            )}
+            {isLoading && showSkeleton
+              ? <SkeletonCardStack />
+              : !isLoading
+                ? <CardStack stage={stage} posts={featuredPosts} isPhoto={false} onSelect={onSelect} />
+                : <div style={{ paddingRight: 22, paddingBottom: 18, maxWidth: 270, height: 163 }} />}
+          </div>
         </div>
 
         {/* See More — hidden while loading */}

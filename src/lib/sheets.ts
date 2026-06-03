@@ -109,6 +109,7 @@ export async function getSheetData(): Promise<PostCard[]> {
       const { username, handle } = parseUsername(tweet_url, srcHandle || undefined)
       const photo_url = buildPhotoUrl(username, platform)
 
+      const date_added = (values[5] ?? '').trim() || undefined
       const isFeatured = (values[6] ?? '').trim().toUpperCase() === 'TRUE'
       const likes      = (values[7] ?? '').trim() || undefined
       const comments   = (values[8] ?? '').trim() || undefined
@@ -125,6 +126,7 @@ export async function getSheetData(): Promise<PostCard[]> {
         initials: username.slice(0, 2).toUpperCase(),
         photo_url,
         is_featured: isFeatured,
+        date_added,
         likes,
         comments,
         image_url,

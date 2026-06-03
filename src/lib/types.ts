@@ -9,6 +9,7 @@ export interface PostCard {
   initials: string
   photo_url: string
   is_featured: boolean
+  date_added?: string
   likes?: string
   comments?: string
   image_url?: string
