@@ -88,7 +88,8 @@ function buildPhotoUrl(username: string, platform: 'x' | 'threads' | 'tiktok' | 
 
 export async function getSheetData(): Promise<PostCard[]> {
   try {
-    const res = await fetch(CSV_URL)
+    // Cache-bust so the browser always fetches fresh data from Google Sheets
+    const res = await fetch(`${CSV_URL}&_t=${Date.now()}`, { cache: 'no-store' })
     if (!res.ok) return []
     const text = await res.text()
     const lines = text.trim().split('\n')
