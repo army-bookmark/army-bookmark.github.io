@@ -1,10 +1,12 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
 import { asset } from '@/lib/asset'
 import { DetailItem } from './DetailItem'
 import { playClick, playHover } from '@/lib/sounds'
+import { trackSectionView, trackSectionEngagement, trackLinkClick } from '@/lib/analytics'
+import { useScrollDepth } from '@/lib/useScrollDepth'
 
 interface StageConfig { name: string; description: string }
 interface Props {
@@ -12,6 +14,7 @@ interface Props {
   config: StageConfig
   posts: PostCard[]
   onBack: () => void
+  scrollContainerRef?: React.RefObject<HTMLElement | null>
 }
 
 const EASE_DROP = [0.16, 1, 0.3, 1] as const
@@ -31,14 +34,37 @@ function getCollapseTransition(idx: number) {
   return { duration: 0.4, ease: EASE_DROP, delay: Math.min((idx - 1) * 0.05, 0.15) }
 }
 
-export function DetailView({ config, posts, onBack }: Props) {
+export function DetailView({ stage, config, posts, onBack, scrollContainerRef }: Props) {
   const [isCollapsing, setIsCollapsing] = useState(false)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
   const mountTime = useRef(Date.now())
+  const engagementTracked = useRef(false)
+
+  useScrollDepth(stage, scrollContainerRef)
+
+  useEffect(() => {
+    trackSectionView(stage, config.name)
+    // Fallback for any unmount path that skips handleBack (e.g. a future
+    // programmatic close) — guarded so it never double-fires with handleBack.
+    return () => {
+      if (!engagementTracked.current) {
+        engagementTracked.current = true
+        trackSectionEngagement(stage, config.name, Date.now() - mountTime.current)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage])
 
   const handleBack = () => {
     if (isCollapsing) return
+    // Fire dwell tracking here rather than waiting for the exit animation to
+    // unmount the component — the animation can stall (e.g. tab backgrounded
+    // mid-transition), which would otherwise delay or lose the event.
+    if (!engagementTracked.current) {
+      engagementTracked.current = true
+      trackSectionEngagement(stage, config.name, Date.now() - mountTime.current)
+    }
     setIsCollapsing(true)
     // Cards animate for 400ms; call onBack at 300ms so home crossfades in
     // while the last card is finishing — feels continuous rather than staged
@@ -125,7 +151,7 @@ export function DetailView({ config, posts, onBack }: Props) {
                     : { duration: 0.5, ease: EASE_DROP, delay: idx * 0.07 }
                 }
               >
-                <DetailItem item={item} typewriterStartAt={mountTime.current + Math.round((idx * 0.07 + 0.5) * 1000)} />
+                <DetailItem item={item} stage={stage} typewriterStartAt={mountTime.current + Math.round((idx * 0.07 + 0.5) * 1000)} />
               </motion.div>
             )
 
@@ -143,7 +169,10 @@ export function DetailView({ config, posts, onBack }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           onMouseEnter={playHover}
-          onClick={playClick}
+          onClick={() => {
+            playClick()
+            trackLinkClick({ url: 'https://trakteer.id/rememorari/tip', label: 'bisa traktir cendol (detail footer)', sectionId: stage, linkType: 'donation' })
+          }}
           style={{
             display: 'inline-block',
             fontFamily: 'var(--font-main)', fontSize: 12, fontWeight: 700,

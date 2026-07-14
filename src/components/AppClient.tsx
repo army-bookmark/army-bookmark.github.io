@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { PostCard } from '@/lib/types'
@@ -8,6 +8,8 @@ import { getSheetData } from '@/lib/sheets'
 import { CardStack } from './CardStack'
 import { DetailView } from './DetailView'
 import { playClick, playHover, playHorrorHover } from '@/lib/sounds'
+import { trackPageView, trackSectionEntryClick, trackLinkClick, trackSectionToggle } from '@/lib/analytics'
+import { useScrollDepth } from '@/lib/useScrollDepth'
 
 const Metaballs = dynamic(
   () => import('@paper-design/shaders-react').then(m => m.Metaballs),
@@ -29,6 +31,8 @@ const STAGE_CONFIG: Record<string, StageConfig> = {
 
 const STAGE_ORDER = ['persiapan-tiket', 'war-tiket', 'udah-dapat-tiket', 'hari-h-konser', 'scam-alert', 'faq-konser']
 const BAR_STAGES  = ['scam-alert', 'faq-konser']
+const PROMINENT_STAGES = ['udah-dapat-tiket', 'hari-h-konser']
+const ARCHIVED_STAGES  = ['persiapan-tiket', 'war-tiket']
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -64,6 +68,7 @@ export function AppClient() {
   const [loading, setLoading] = useState(true)
   const [showSkeleton, setShowSkeleton] = useState(false)
   const [activeStage, setActiveStage] = useState<string | null>(null)
+  const detailScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const skeletonTimer = setTimeout(() => setShowSkeleton(true), 250)
@@ -75,17 +80,28 @@ export function AppClient() {
     return () => clearTimeout(skeletonTimer)
   }, [])
 
+  // Initial pageview + re-fire whenever the user lands back on home
+  useEffect(() => {
+    if (!activeStage) trackPageView('/', 'Home')
+  }, [activeStage])
+
   const grouped = Object.fromEntries(
     STAGE_ORDER.map(s => [s, posts.filter(p => p.stage === s)])
   )
   const activePosts = activeStage ? grouped[activeStage] ?? [] : []
+
+  // Records which button/card triggered the section open, then navigates
+  const handleSelect = (stage: string, entryPoint: string) => {
+    trackSectionEntryClick(stage, STAGE_CONFIG[stage]?.name ?? stage, entryPoint)
+    setActiveStage(stage)
+  }
 
   return (
     <div style={{ position: 'relative' }}>
       {/* Home is always mounted — scroll position preserved, no blank-flash on back */}
       <HomePage
         grouped={grouped}
-        onSelect={setActiveStage}
+        onSelect={handleSelect}
         loading={loading}
         showSkeleton={showSkeleton}
       />
@@ -95,6 +111,7 @@ export function AppClient() {
         {activeStage && (
           <motion.div
             key={`detail-${activeStage}`}
+            ref={detailScrollRef}
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.2, ease: 'linear' } }}
@@ -108,6 +125,7 @@ export function AppClient() {
               config={STAGE_CONFIG[activeStage] ?? { name: activeStage, description: '' }}
               posts={activePosts}
               onBack={() => setActiveStage(null)}
+              scrollContainerRef={detailScrollRef}
             />
           </motion.div>
         )}
@@ -118,8 +136,8 @@ export function AppClient() {
 
 // ── Home page ─────────────────────────────────────────────────────────────────
 
-function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Record<string, PostCard[]>; onSelect: (s: string) => void; loading: boolean; showSkeleton: boolean }) {
-  const stackStages = STAGE_ORDER.filter(s => !BAR_STAGES.includes(s))
+function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Record<string, PostCard[]>; onSelect: (s: string, entryPoint: string) => void; loading: boolean; showSkeleton: boolean }) {
+  useScrollDepth('home')
   const [scamHovered, setScamHovered] = useState(false)
   const [faqHovered, setFaqHovered]   = useState(false)
 
@@ -176,7 +194,10 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
               target="_blank"
               rel="noopener noreferrer"
               onMouseEnter={playHover}
-              onClick={playClick}
+              onClick={() => {
+                playClick()
+                trackLinkClick({ url: 'https://trakteer.id/rememorari/tip', label: 'bisa traktir cendol (banner)', sectionId: 'home', linkType: 'donation' })
+              }}
               style={{ color: 'rgb(251, 48, 76)', textDecoration: 'underline' }}
             >
               bisa traktir cendol
@@ -198,7 +219,7 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
 
         {/* ── CATEGORY STACKS ── */}
         <div style={{ paddingBottom: 8 }}>
-          {stackStages.map(stage => {
+          {PROMINENT_STAGES.map(stage => {
             const cfg = STAGE_CONFIG[stage]
             if (!cfg) return null
             return (
@@ -235,7 +256,7 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
           <button
             onMouseEnter={() => { setScamHovered(true); playHorrorHover() }}
             onMouseLeave={() => setScamHovered(false)}
-            onClick={() => { playClick(); onSelect('scam-alert') }}
+            onClick={() => { playClick(); onSelect('scam-alert', 'bar_button') }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               width: 'calc(100% + 12px)',
@@ -261,7 +282,7 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
           <button
             onMouseEnter={() => { setFaqHovered(true); playHover() }}
             onMouseLeave={() => setFaqHovered(false)}
-            onClick={() => { playClick(); onSelect('faq-konser') }}
+            onClick={() => { playClick(); onSelect('faq-konser', 'bar_button') }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               width: '100%',
@@ -290,6 +311,30 @@ function HomePage({ grouped, onSelect, loading, showSkeleton }: { grouped: Recor
         <div style={{ background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '240px 0 52px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={asset('/assets/bts_logo.svg')} alt="BTS" style={{ width: 50, height: 68, objectFit: 'contain' }} />
+        </div>
+
+        {/* ── ARCHIVE ── collapsed by default, no longer top-of-mind info */}
+        <div style={{ marginTop: 48, paddingTop: 28, paddingBottom: 40, borderTop: '1px solid #E5E5E5' }}>
+          <p style={{ margin: '0 32px 8px', fontFamily: 'var(--font-main)', fontSize: 11, color: '#999', lineHeight: '16px' }}>
+            Kalau kamu udah dapet tiket, dua info di bawah ini kemungkinan udah nggak relevan lagi buat kamu — disimpen di sini buat jaga-jaga aja.
+          </p>
+          {ARCHIVED_STAGES.map(stage => {
+            const cfg = STAGE_CONFIG[stage]
+            if (!cfg) return null
+            return (
+              <CategorySection
+                key={stage}
+                stage={stage}
+                config={cfg}
+                posts={grouped[stage] ?? []}
+                onSelect={onSelect}
+                isLoading={loading}
+                showSkeleton={showSkeleton}
+                hasNewContent={stageHasNew(grouped[stage] ?? [])}
+                collapsible
+              />
+            )
+          })}
         </div>
       </div>
     </div>
@@ -342,33 +387,39 @@ const TITLE_DECOS: Record<string, DecoConfig> = {
   'hari-h-konser':    { type: 'tape', left: -6, top: -18, width: 84, height: 58, rotate: 0 },
 }
 
-function CategorySection({ stage, config, posts, onSelect, isLoading, showSkeleton, hasNewContent }: {
-  stage: string; config: StageConfig; posts: PostCard[]; onSelect: (s: string) => void; isLoading?: boolean; showSkeleton?: boolean; hasNewContent?: boolean
+const COLLAPSE_EASE = [0.16, 1, 0.3, 1] as const
+
+function ChevronIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <span style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
+      <motion.svg
+        width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"
+        animate={{ rotate: expanded ? 180 : 0 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+      >
+        <path d="M6 9l6 6 6-6" />
+      </motion.svg>
+    </span>
+  )
+}
+
+function CategorySection({ stage, config, posts, onSelect, isLoading, showSkeleton, hasNewContent, collapsible }: {
+  stage: string; config: StageConfig; posts: PostCard[]; onSelect: (s: string, entryPoint: string) => void; isLoading?: boolean; showSkeleton?: boolean; hasNewContent?: boolean; collapsible?: boolean
 }) {
   const deco = TITLE_DECOS[stage]
   const featuredPosts = posts.filter(p => p.is_featured)
   const [seeMoreHovered, setSeeMoreHovered] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
-  return (
-    <div style={{ padding: '28px 0 0' }}>
-      {/* Title row with decoration */}
-      <div style={{ position: 'relative', marginLeft: 32, marginRight: 32, marginBottom: 4 }}>
-        {deco?.type === 'tape' && (
-          <TapeImg style={{
-            position: 'absolute', left: deco.left, top: deco.top,
-            width: deco.width, height: deco.height,
-            transform: deco.rotate ? `rotate(${deco.rotate}deg)` : undefined,
-            transformOrigin: '0 0', filter: 'hue-rotate(349deg)', zIndex: 1,
-          }} />
-        )}
-        <h2 style={{ position: 'relative', zIndex: 2, fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, lineHeight: '24px', color: '#000', margin: 0 }}>
-          {config.name}
-        </h2>
-        {deco?.type === 'underline' && (
-          <div style={{ position: 'absolute', left: deco.left, bottom: -1, width: deco.width, height: 2, background: '#FB314C', transform: `rotate(${deco.rotate ?? 0}deg)`, transformOrigin: '0 0', zIndex: 3 }} />
-        )}
-      </div>
+  const handleToggle = () => {
+    playClick()
+    const next = !isExpanded
+    setIsExpanded(next)
+    trackSectionToggle(stage, config.name, next)
+  }
 
+  const content = (
+    <>
       <p style={{ marginLeft: 32, marginRight: 32, marginTop: 6, marginBottom: 16, fontFamily: 'var(--font-main)', fontSize: 13, lineHeight: '18px', color: '#000' }}>
         {config.description}
       </p>
@@ -378,7 +429,7 @@ function CategorySection({ stage, config, posts, onSelect, isLoading, showSkelet
         <div
           style={{ flex: 1, minWidth: 0, cursor: isLoading ? 'default' : 'pointer' }}
           onMouseEnter={isLoading ? undefined : playHover}
-          onClick={isLoading ? undefined : () => { playClick(); onSelect(stage) }}
+          onClick={isLoading ? undefined : () => { playClick(); onSelect(stage, 'card_thumbnail') }}
         >
           {/* Wrap card with relative so badge anchors to card bounds */}
           <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -400,7 +451,7 @@ function CategorySection({ stage, config, posts, onSelect, isLoading, showSkelet
             {isLoading && showSkeleton
               ? <SkeletonCardStack />
               : !isLoading
-                ? <CardStack stage={stage} posts={featuredPosts} isPhoto={false} onSelect={onSelect} />
+                ? <CardStack stage={stage} posts={featuredPosts} isPhoto={false} />
                 : <div style={{ paddingRight: 22, paddingBottom: 18, maxWidth: 270, height: 163 }} />}
           </div>
         </div>
@@ -411,7 +462,7 @@ function CategorySection({ stage, config, posts, onSelect, isLoading, showSkelet
             <button
               onMouseEnter={() => { setSeeMoreHovered(true); playHover() }}
               onMouseLeave={() => setSeeMoreHovered(false)}
-              onClick={() => { playClick(); onSelect(stage) }}
+              onClick={() => { playClick(); onSelect(stage, 'see_more_button') }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
             >
               <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 11, lineHeight: '14px', color: seeMoreHovered ? '#000' : '#FB304C' }}>See</span>
@@ -421,6 +472,50 @@ function CategorySection({ stage, config, posts, onSelect, isLoading, showSkelet
           </div>
         )}
       </div>
+    </>
+  )
+
+  return (
+    <div style={{ padding: '28px 0 0' }}>
+      {/* Title row with decoration */}
+      <div
+        style={{ position: 'relative', marginLeft: 32, marginRight: collapsible ? 56 : 32, marginBottom: 4, cursor: collapsible ? 'pointer' : 'default' }}
+        onMouseEnter={collapsible ? playHover : undefined}
+        onClick={collapsible ? handleToggle : undefined}
+      >
+        {deco?.type === 'tape' && (
+          <TapeImg style={{
+            position: 'absolute', left: deco.left, top: deco.top,
+            width: deco.width, height: deco.height,
+            transform: deco.rotate ? `rotate(${deco.rotate}deg)` : undefined,
+            transformOrigin: '0 0', filter: 'hue-rotate(349deg)', zIndex: 1,
+          }} />
+        )}
+        <h2 style={{ position: 'relative', zIndex: 2, fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, lineHeight: '24px', color: '#000', margin: 0 }}>
+          {config.name}
+        </h2>
+        {deco?.type === 'underline' && (
+          <div style={{ position: 'absolute', left: deco.left, bottom: -1, width: deco.width, height: 2, background: '#FB314C', transform: `rotate(${deco.rotate ?? 0}deg)`, transformOrigin: '0 0', zIndex: 3 }} />
+        )}
+        {collapsible && <ChevronIcon expanded={isExpanded} />}
+      </div>
+
+      {collapsible ? (
+        <AnimatePresence initial={false}>
+          {isExpanded && (
+            <motion.div
+              key="content"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: COLLAPSE_EASE }}
+              style={{ overflow: 'hidden' }}
+            >
+              {content}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      ) : content}
     </div>
   )
 }

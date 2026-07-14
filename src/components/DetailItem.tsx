@@ -4,6 +4,7 @@ import type { PostCard } from '@/lib/types'
 import { useTweetText } from '@/lib/useTweetText'
 import { Avatar, XIcon, ThreadsIcon, TikTokIcon, InstagramIcon, PinterestIcon, FacebookIcon, LinkIcon } from './TopCard'
 import { playKeyClick, playHover, playClick } from '@/lib/sounds'
+import { trackLinkClick } from '@/lib/analytics'
 
 // ── Terminal typewriter ───────────────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ function CaptionBubble({ text, startAt }: { text: string; startAt: number }) {
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
-export function DetailItem({ item, typewriterStartAt }: { item: PostCard; typewriterStartAt: number }) {
+export function DetailItem({ item, stage, typewriterStartAt }: { item: PostCard; stage: string; typewriterStartAt: number }) {
   const tweetText = useTweetText(item.tweet_url, item.platform)
 
   return (
@@ -110,7 +111,10 @@ export function DetailItem({ item, typewriterStartAt }: { item: PostCard; typewr
             target="_blank"
             rel="noopener noreferrer"
             onMouseEnter={playHover}
-            onClick={playClick}
+            onClick={() => {
+              playClick()
+              trackLinkClick({ url: item.tweet_url, label: `${item.platform}:${item.handle || item.username}`, sectionId: stage, linkType: 'source_post' })
+            }}
             style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, background: '#000', color: '#fff', fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 11, padding: '5px 12px', borderRadius: 4, textDecoration: 'none', flexShrink: 0 }}
           >
             Open Link →

@@ -7,7 +7,6 @@ interface Props {
   stage: string
   posts: PostCard[]
   isPhoto: boolean
-  onSelect: (stage: string) => void
   isLoading?: boolean
 }
 
@@ -17,7 +16,7 @@ const layer3 = { rest: { x: 16, y: 14, rotate: 2.2 }, hover: { x: 20, y: 18, rot
 const layer2 = { rest: { x: 8, y: 7, rotate: 1.1 }, hover: { x: 11, y: 10, rotate: 2.0 } }
 const topLayer = { rest: { rotate: 0, y: 0, x: 0 }, hover: { rotate: -1.2, y: -3, x: -1 } }
 
-export function CardStack({ stage, posts, isPhoto, onSelect, isLoading }: Props) {
+export function CardStack({ posts, isLoading }: Props) {
   const latest = posts[0]
   if (!latest) {
     return (
@@ -45,7 +44,6 @@ export function CardStack({ stage, posts, isPhoto, onSelect, isLoading }: Props)
       initial="rest"
       whileHover="hover"
       whileTap={{ scale: 0.98 }}
-      onClick={() => onSelect(stage)}
     >
       {/* Layer 3 — deepest */}
       <motion.div
